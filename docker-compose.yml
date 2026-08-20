@@ -1,0 +1,41 @@
+services:
+  lw-wms-db:
+    image: postgres:16
+    container_name: lw-wms-db
+    ports:
+      - '5001:5432'
+    environment:
+      POSTGRES_USER: wms_user
+      POSTGRES_PASSWORD: wms_pass
+      POSTGRES_DB: wms_db
+    volumes:
+      - wms_volume_db:/var/lib/postgresql/data
+    networks:
+      - wms_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U wms_user -d wms_db'"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3      
+    
+  lw-db-migrate:
+    image: migrate/migrate
+    container_name: lw-db-migrate
+    depends_on:
+      lw-wms-db:
+        condition: service_healthy
+    networks:
+      - wms_network
+    volumes:
+      - ./migrations/wms_db:/migrations
+    command: ["-path", "/migrations", "-database",  "postgres://wms_user:wms_pass@lw-wms-db:5432/wms_db?sslmode=disable", "up"]
+    links:
+      - lw-wms-db
+networks:
+  wms_network:
+    driver: bridge
+volumes:
+  wms_volume_db:
+

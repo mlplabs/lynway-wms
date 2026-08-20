@@ -1,0 +1,280 @@
+definitions:
+  dto.LoginRequest:
+    properties:
+      api_key:
+        description: ApiKey, если авторизация не по паролю
+        type: string
+      email:
+        description: Логин
+        type: string
+      password:
+        description: Пароль
+        type: string
+    type: object
+  dto.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  dto.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  dto.RefreshResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  github_com_mlplabs_lynway-wms_pkg_dto.AgentInfoRequest:
+    properties:
+      name:
+        description: Название агента (в разработке)
+        type: string
+      printers:
+        description: Список принтеров
+        items:
+          $ref: '#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.PrinterInfo'
+        type: array
+      version:
+        description: Версия агента (в разработке)
+        type: string
+    type: object
+  github_com_mlplabs_lynway-wms_pkg_dto.DecodeRequest:
+    properties:
+      code:
+        description: Данные от сканера
+        type: string
+    type: object
+  github_com_mlplabs_lynway-wms_pkg_dto.DecodeResponse:
+    properties:
+      id:
+        description: ID данных, если имеются
+        type: integer
+      type:
+        description: Тип данных
+        type: integer
+    type: object
+  github_com_mlplabs_lynway-wms_pkg_dto.EntityTypeId:
+    enum:
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-comments:
+      EntityTypeIdContainer: Контейнеры
+      EntityTypeIdProduct: Товары
+      EntityTypeIdTypeCell: Ячейки
+    x-enum-descriptions:
+    - Товары
+    - Контейнеры
+    - Ячейки
+    x-enum-varnames:
+    - EntityTypeIdProduct
+    - EntityTypeIdContainer
+    - EntityTypeIdTypeCell
+  github_com_mlplabs_lynway-wms_pkg_dto.GetPrintTaskResponse:
+    properties:
+      data:
+        description: RAW (base64) данные для печати
+        type: string
+      entity_id:
+        description: ID данных
+        type: integer
+      entity_type_id:
+        allOf:
+        - $ref: '#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.EntityTypeId'
+        description: ID типа данных
+      id:
+        description: ID задачи
+        type: integer
+      labels:
+        additionalProperties:
+          type: string
+        description: Типовые метки
+        type: object
+      printer_name:
+        description: Название принтера, на который надо печатать
+        type: string
+      to_file:
+        description: Печать в файл (в разработке)
+        type: boolean
+      type:
+        allOf:
+        - $ref: '#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.PrintTaskType'
+        description: Тип задачи
+    type: object
+  github_com_mlplabs_lynway-wms_pkg_dto.PrintTaskType:
+    enum:
+    - 1
+    type: integer
+    x-enum-comments:
+      PrintTaskTypeLabel: Стандартная этикетка
+    x-enum-descriptions:
+    - Стандартная этикетка
+    x-enum-varnames:
+    - PrintTaskTypeLabel
+  github_com_mlplabs_lynway-wms_pkg_dto.PrinterInfo:
+    properties:
+      printer_name:
+        description: Название принтера
+        type: string
+    type: object
+  github_com_mlplabs_lynway-wms_pkg_dto.TaskStatus:
+    enum:
+    - 0
+    - 1
+    - 11
+    - 12
+    type: integer
+    x-enum-comments:
+      PrintTaskStatusError: Завершилось с ошибкой
+      PrintTaskStatusPending: Ожидание
+      PrintTaskStatusProcessing: В обработке
+      PrintTaskStatusSuccess: Завершилось успешно
+    x-enum-descriptions:
+    - Ожидание
+    - В обработке
+    - Завершилось успешно
+    - Завершилось с ошибкой
+    x-enum-varnames:
+    - PrintTaskStatusPending
+    - PrintTaskStatusProcessing
+    - PrintTaskStatusSuccess
+    - PrintTaskStatusError
+  github_com_mlplabs_lynway-wms_pkg_dto.UpdatePrintTaskStatusRequest:
+    properties:
+      id:
+        type: integer
+      status:
+        $ref: '#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.TaskStatus'
+    type: object
+  wrapper.Data:
+    properties:
+      data: {}
+    type: object
+info:
+  contact: {}
+  title: Lynway WMS API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      parameters:
+      - description: логин/пароль пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      responses:
+        "200":
+          description: JWT токены
+          schema:
+            allOf:
+            - $ref: '#/definitions/wrapper.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.LoginResponse'
+              type: object
+      summary: вход в систему
+      tags:
+      - Authorization
+  /auth/refresh:
+    post:
+      parameters:
+      - description: refresh токен
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshRequest'
+      responses:
+        "200":
+          description: JWT токены
+          schema:
+            allOf:
+            - $ref: '#/definitions/wrapper.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.RefreshResponse'
+              type: object
+      summary: обновление токенов
+      tags:
+      - Authorization
+  /decode:
+    post:
+      parameters:
+      - description: данные от сканера
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.DecodeRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/wrapper.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.DecodeResponse'
+              type: object
+      summary: '"декодирует" данные от сканера, определяет штрих-код какой сущности
+        был отсканированы'
+      tags:
+      - Wms
+  /print/agents:
+    post:
+      description: агент обновляет данные о себе на сервере и обновляет список принтеров
+      parameters:
+      - description: данные агена
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.AgentInfoRequest'
+      responses:
+        "200":
+          description: OK
+      summary: обновление данных агента печати
+      tags:
+      - Printing
+  /print/tasks:
+    get:
+      description: агент получает задание из очереди.
+      responses:
+        "200":
+          description: задание для печати
+          schema:
+            allOf:
+            - $ref: '#/definitions/wrapper.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.GetPrintTaskResponse'
+              type: object
+      summary: получение задания на печать
+      tags:
+      - Printing
+  /print/tasks/status:
+    post:
+      description: после выполнения печати, агент обновляет статус задания
+      parameters:
+      - description: новый статус задания
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.UpdatePrintTaskStatusRequest'
+      responses:
+        "200":
+          description: OK
+      summary: обновление статуса задания печати на сервере
+      tags:
+      - Printing
+swagger: "2.0"
