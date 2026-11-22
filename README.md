@@ -2,27 +2,29 @@
 
 ## Lynway WMS backend service
 
-Этот репозиторий содержит **Community Edition (CE)** — открытую версию бэкенда Lynway WMS, распространяемую под лицензией **AGPLv3** (см. [LICENSE](LICENSE)).
+[Русская версия](README_ru.md)
 
-Платные редакции — **Business** и **Cloud** — разрабатываются в приватном репозитории и не публикуются на GitHub.
+This repository contains the **Community Edition (CE)** — the open-source backend of Lynway WMS, distributed under the **AGPLv3** license (see [LICENSE](LICENSE)).
+
+The paid editions — **Business** and **Cloud** — are developed in a private repository and are not published on GitHub.
 
 Swagger: http://localhost:8888/api/v1/docs/index.html
 
-### Редакции продукта
+### Product editions
 
-| Редакция | Код | Лицензия | Где находится |
+| Edition | Code | License | Location |
 |---|---|---|---|
-| Community Edition | открытый | AGPLv3 | этот репозиторий |
-| Business | закрытый | коммерческая | приватный репозиторий |
-| Cloud | закрытый | SaaS / коммерческая | приватный репозиторий |
+| Community Edition | open source | AGPLv3 | this repository |
+| Business | closed source | commercial | private repository |
+| Cloud | closed source | SaaS / commercial | private repository |
 
-### Как устроена разработка без конфликтов между редакциями
+### How we develop without edition conflicts
 
-1. **Общее ядро.** CE-репозиторий — источник истины для базовой логики. Business/Cloud собираются поверх него как надстройка, а не как форк с отдельными ветками.
-2. **Приватный репозиторий + синхронизация.** Enterprise-репозиторий подключает код CE (submodule или скрипт-синхронизация с allowlist). Платные модули живут только там — в GitHub они не попадают.
-3. **Build tags.** Платный код изолируется тегом `//go:build enterprise`; в CE-сборке такие файлы просто игнорируются компилятором. Точки расширения — интерфейсы и registry: в CE регистрация пустая.
-4. **CI-гарантия чистоты CE.** В этом репозитории CI собирает и тестирует бинарник **без** тега `enterprise` — так исключается утечка проприетарного кода в открытую сборку.
-5. **CLA.** Контрибьюторы CE подписывают Contributor License Agreement, чтобы мы сохраняли право двойного лицензирования (закрывать их код в Business/Cloud).
+1. **Shared core.** The CE repository is the source of truth for base logic. Business/Cloud are built on top of it as an overlay, not as a fork with separate branches.
+2. **Private repo + synchronization.** The enterprise repository consumes CE code (submodule or allowlist-based sync script). Paid modules live only there and never end up on GitHub.
+3. **Build tags.** Paid code is isolated with `//go:build enterprise`; such files are simply ignored by the compiler in CE builds. Extension points are interfaces and a registry: in CE the registry is empty.
+4. **CI guarantee of CE purity.** CI in this repository builds and tests the binary **without** the `enterprise` tag — this prevents proprietary code from leaking into the open build.
+5. **CLA.** CE contributors sign a Contributor License Agreement so we retain dual-licensing rights (ability to include their code in Business/Cloud).
 
 ### Deploy database for development
 
