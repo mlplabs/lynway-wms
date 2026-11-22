@@ -4,7 +4,7 @@
 
 [Русская версия](README_ru.md)
 
-**Lightweight Warehouse Management System (WMS) for personal storage and small businesses** with out-of-the-box startup and no rigid master-data hierarchies.
+**Lightweight warehouse management system (WMS). For individual storage or small businesses.**
 
 This repository contains the **Community Edition (CE)** — the open-source backend of Lynway WMS, distributed under the **AGPLv3** license (see [LICENSE](LICENSE)).
 
