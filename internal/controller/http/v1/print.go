@@ -10,7 +10,7 @@ import (
 // @Tags Printing
 // @Summary обновление данных агента печати
 // @Description агент обновляет данные о себе на сервере и обновляет список принтеров
-// @Router /print/agents [post]
+// @Router /print/agents/sync [post]
 // @Param request body dto.AgentInfoRequest true "данные агена"
 // @Success	200
 func (h *ServiceHandler) updateAgentInfo(w http.ResponseWriter, r *http.Request) error {

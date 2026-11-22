@@ -68,7 +68,7 @@ func NewServiceHandler(router *chi.Mux, publicKey *rsa.PublicKey, service *wms.S
 			r.Use(httpInternal.APIKeyValidate(h.apiKeys))
 			r.Route("/print", func(r chi.Router) {
 				r.Route("/agents", func(r chi.Router) {
-					r.Post("/", wrapper.Empty(h.updateAgentInfo))
+					r.Post("/sync", wrapper.Empty(h.updateAgentInfo))
 				})
 				r.Get("/tasks", wrapper.Data(h.getPrintTask))
 				r.Post("/tasks/status", wrapper.Empty(h.updatePrintTaskStatus))
