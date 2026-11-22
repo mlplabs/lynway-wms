@@ -30,7 +30,7 @@ func (c *HttpClient) UpdateAgentInfo(ctx context.Context, request *dto.AgentInfo
 	resp, err := c.client.R().
 		SetContext(ctx).
 		SetBody(request).
-		Post("api/v1/print/agents")
+		Post("api/v1/print/agents/sync")
 
 	if err != nil {
 		return fmt.Errorf("update agent info error: %v", err)
