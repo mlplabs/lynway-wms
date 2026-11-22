@@ -33,7 +33,7 @@ The paid editions — **Business** and **Cloud** — are developed in a private 
    ```
 2. Run the service (the database will be initialized automatically on first start):
    ```bash
-   go run ./cmd/server
+   make run
    ```
    Default administrator credentials: `admin` / `admin`.
 

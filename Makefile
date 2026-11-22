@@ -1,3 +1,4 @@
+APP_NAME := lynway-wms
 LOCAL_BIN := $(shell go env GOPATH)/bin
 BASE_APP_NAME := lynway-wms
 
@@ -9,6 +10,9 @@ swagger:
 lint:
 	golangci-lint run -c .golangci.yml
 
+.PHONY: run
+run:
+	GOBIN=$(LOCAL_BIN) go run ./cmd/lynway-wms
 
 .PHONY: bin-deps
 bin-deps: ## Установка зависимостей
