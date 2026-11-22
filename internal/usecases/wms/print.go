@@ -12,10 +12,10 @@ import (
 
 type PrintRepository interface {
 	GetAgent(ctx context.Context, token string) (*model.Agent, error)
-	GetPrintTaskWithLock(ctx context.Context, agentId int) (int, error)
-	GetPrintTaskById(ctx context.Context, taskId int) (*model.PrintQueueTask, error)
 	UpdateAgentInfo(ctx context.Context, agentInfo *model.AgentInfo) error
 	UpdateAgentToken(ctx context.Context, agentId int, token string) error
+	GetPrintTaskWithLock(ctx context.Context, agentId int) (int, error)
+	GetPrintTaskById(ctx context.Context, taskId int) (*model.PrintQueueTask, error)
 	UpdatePrintTaskStatus(ctx context.Context, status *model.PrintTaskStatus) error
 }
 

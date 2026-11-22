@@ -1,6 +1,6 @@
 module github.com/mlplabs/lynway-wms
 
-go 1.25.0
+go 1.25.11
 
 replace github.com/mlplabs/common-go-pkg => github.com/mlplabs/common-go-pkg v0.0.6
 
@@ -14,6 +14,7 @@ require (
 	github.com/go-chi/chi/v5 v5.3.1
 	github.com/go-chi/cors v1.2.2
 	github.com/go-resty/resty/v2 v2.17.2
+	github.com/golang-migrate/migrate/v4 v4.20.1
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.12.1
@@ -21,6 +22,7 @@ require (
 	github.com/swaggo/http-swagger/v2 v2.0.2
 	github.com/swaggo/swag v1.16.6
 	gitlab.com/mlplabs/auth-service v0.0.0-00010101000000-000000000000
+	golang.org/x/crypto v0.54.0
 )
 
 require (
@@ -33,8 +35,9 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
-	golang.org/x/mod v0.17.0 // indirect
+	golang.org/x/mod v0.36.0 // indirect
 	golang.org/x/net v0.57.0 // indirect
-	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
+	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/tools v0.45.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

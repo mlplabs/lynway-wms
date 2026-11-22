@@ -1,3 +1,11 @@
-drop table products;
-
-
+DROP TABLE IF EXISTS public.operations_inbox;
+DROP TABLE IF EXISTS public.users;
+DROP TABLE IF EXISTS public.print_jobs;
+DROP TABLE IF EXISTS public.printers;
+DROP TABLE IF EXISTS public.storage;
+DROP TABLE IF EXISTS public.items;
+DROP TABLE IF EXISTS public.manufacturers;
+DROP TABLE IF EXISTS public.containers;
+DROP TABLE IF EXISTS public.cells;
+DROP TABLE IF EXISTS public.zones;
+DROP TABLE IF EXISTS public.warehouses;

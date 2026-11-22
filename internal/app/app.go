@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"log"
 	"log/slog"
 	"os"
@@ -15,6 +16,7 @@ import (
 	controller "github.com/mlplabs/lynway-wms/internal/controller/http"
 	v1 "github.com/mlplabs/lynway-wms/internal/controller/http/v1"
 	"github.com/mlplabs/lynway-wms/internal/repository"
+	"github.com/mlplabs/lynway-wms/internal/repository/bootstrap"
 	"github.com/mlplabs/lynway-wms/internal/repository/print"
 	"github.com/mlplabs/lynway-wms/internal/repository/users"
 	"github.com/mlplabs/lynway-wms/internal/usecases/wms"
@@ -25,6 +27,8 @@ const applicationName = "lynway-wms"
 
 // Run запускает сервис.
 func Run(cfg *config.Config) {
+	ctx := context.Background()
+	
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}))
@@ -45,6 +49,17 @@ func Run(cfg *config.Config) {
 		return
 	}
 	defer pgConnection.Close()
+
+	err = bootstrap.RunMigrations(pgConnection)
+	if err != nil {
+		log.Printf("failed to run migrations: %s", err)
+		return
+	}
+	err = bootstrap.SeedDefaults(ctx, pgConnection)
+	if err != nil {
+		log.Printf("failed to seed defaults: %s", err)
+		return
+	}
 
 	service := wms.NewService(
 		authClient.NewHttpClient(applicationName, &cfg.AuthClient),
