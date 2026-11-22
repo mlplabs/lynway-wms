@@ -1,7 +1,7 @@
 .idea
 .data
 .env
-!.env.example
+!.env.sample
 .env.*.local
 
 # Binaries for programs and plugins
@@ -17,6 +17,5 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 *.http
-vendor/
-
+migrations/backup
 
