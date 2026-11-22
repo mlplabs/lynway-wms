@@ -1,6 +1,7 @@
 .idea
 .data
 .env
+.build
 !.env.sample
 .env.*.local
 
