@@ -9,3 +9,4 @@ DROP TABLE IF EXISTS public.containers;
 DROP TABLE IF EXISTS public.cells;
 DROP TABLE IF EXISTS public.zones;
 DROP TABLE IF EXISTS public.warehouses;
+DROP TABLE IF EXISTS schema_migrations;

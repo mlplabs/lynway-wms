@@ -35,6 +35,7 @@ func (c *HttpClient) UpdateAgentInfo(ctx context.Context, request *dto.AgentInfo
 	if err != nil {
 		return fmt.Errorf("update agent info error: %v", err)
 	}
+
 	if resp.IsError() {
 		return fmt.Errorf("update agent info error: %s", errors.New(resp.Status()))
 	}
@@ -55,6 +56,7 @@ func (c *HttpClient) GetPrintTask(ctx context.Context, request *dto.GetPrintTask
 	if err != nil {
 		return nil, fmt.Errorf("get print tasks error: %w", err)
 	}
+
 	if resp.IsError() {
 		return nil, fmt.Errorf("get print tasks error: %w", errors.New(resp.Status()))
 	}
@@ -72,6 +74,7 @@ func (c *HttpClient) UpdatePrintTaskStatus(ctx context.Context, request *dto.Upd
 	if err != nil {
 		return fmt.Errorf("get print tasks error: %w", err)
 	}
+
 	if resp.IsError() {
 		return fmt.Errorf("get print tasks error: %w", errors.New(resp.Status()))
 	}

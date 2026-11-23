@@ -45,14 +45,15 @@ func APIKeyValidate(apiKeys map[string]struct{}) func(http.Handler) http.Handler
 				pkgErr.SetError(w, r, domainErr.NewBadRequest(errors.New("missing X-Access-Token")))
 				return
 			}
+
 			_, ok := apiKeys[key]
 			if !ok {
 				pkgErr.SetError(w, r, domainErr.NewUnauthorized(errors.New("invalid X-Access-Token")))
 				return
 			}
+
 			ctx := context.WithValue(r.Context(), AccessTokenKey{}, key)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
-
