@@ -78,6 +78,9 @@ CREATE TABLE public.items (
 CREATE INDEX idx_items_name_trgm ON public.items USING gin (name gin_trgm_ops);
 CREATE INDEX idx_items_tags ON public.items USING gin (tags);
 CREATE INDEX idx_items_attributes ON public.items USING gin (attributes);
+CREATE UNIQUE INDEX idx_items_barcode_unique
+    ON public.items (LOWER(TRIM(barcode)))
+    WHERE barcode IS NOT NULL AND TRIM(barcode) <> '';
 
 -- 6. Единый регистр движений
 CREATE TABLE public.storage (

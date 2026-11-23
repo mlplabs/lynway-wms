@@ -23,6 +23,7 @@ func (h *ServiceHandler) updateAgentInfo(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		return err
 	}
+
 	agentInfo.Token = agentToken
 	return h.service.UpdateAgentInfo(r.Context(), agentInfo)
 }
@@ -35,6 +36,7 @@ func (h *ServiceHandler) updateAgentInfo(w http.ResponseWriter, r *http.Request)
 // @Success	200 {object} wrapper.Data{data=dto.GetPrintTaskResponse} "задание для печати"
 func (h *ServiceHandler) getPrintTask(w http.ResponseWriter, r *http.Request) (any, error) {
 	ctx := r.Context()
+
 	agentToken, err := getAccessToken(r)
 	if err != nil {
 		return nil, err

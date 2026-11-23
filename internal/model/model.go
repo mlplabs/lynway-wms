@@ -57,11 +57,6 @@ type Product struct {
 	Barcodes     []Barcode     `json:"barcodes"`
 }
 
-type Manufacturer struct {
-	Id   int64  `json:"id"`
-	Name string `json:"name"`
-}
-
 type Barcode struct {
 	Id       int64            `json:"id"`
 	Name     string           `json:"name"`

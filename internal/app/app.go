@@ -28,7 +28,7 @@ const applicationName = "lynway-wms"
 // Run запускает сервис.
 func Run(cfg *config.Config) {
 	ctx := context.Background()
-	
+
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}))
@@ -55,6 +55,7 @@ func Run(cfg *config.Config) {
 		log.Printf("failed to run migrations: %s", err)
 		return
 	}
+
 	err = bootstrap.SeedDefaults(ctx, pgConnection)
 	if err != nil {
 		log.Printf("failed to seed defaults: %s", err)

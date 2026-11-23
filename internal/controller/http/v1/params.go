@@ -97,6 +97,7 @@ func getUpdateTaskStatusRequest(r *http.Request) (*model.PrintTaskStatus, error)
 
 func getAccessToken(r *http.Request) (string, error) {
 	val := r.Context().Value(httpInternal.AccessTokenKey{})
+
 	tokenStr, ok := val.(string)
 	if !ok {
 		return "", domainErr.NewUnauthorized(errors.New("missing access token"))

@@ -37,6 +37,7 @@ func (s *Service) GetPrintTask(ctx context.Context, agentId int) (*model.PrintTa
 	t := model.PrintTask{
 		Labels: make(map[string]string),
 	}
+
 	if taskQueue.PrintType == dto.PrintTaskTypeLabel {
 		// Формируем данные для печати типовой (пока) этикетки. Зависит от print_type
 		switch taskQueue.EntityTypeId {
@@ -72,6 +73,7 @@ func (s *Service) UpdateAgentInfo(ctx context.Context, agentInfo *model.AgentInf
 func (s *Service) GenerateAgentToken(ctx context.Context, agentId int) (string, error) {
 	uid := uuid.New().String()
 	token := base64.StdEncoding.EncodeToString([]byte(uid))
+
 	err := s.print.UpdateAgentToken(ctx, agentId, token)
 	if err != nil {
 		return "", fmt.Errorf("failed to update agent token, agent %d, err: %w", agentId, err)

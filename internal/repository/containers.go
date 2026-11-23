@@ -9,6 +9,7 @@ import (
 func (r *pgRepository) GetContainerById(ctx context.Context, id int) (*model.Container, error) {
 	q := `SELECT id, name, type, parent_id, root_id, depth FROM containers WHERE id = $1`
 	ct := model.Container{}
+
 	err := r.conn.QueryRowContext(ctx, q, id).Scan(&ct.Id, &ct.Name, &ct.Type, &ct.Pid, &ct.Rid, &ct.Depth)
 	if err != nil {
 		return nil, err
@@ -21,6 +22,7 @@ func (r *pgRepository) GetContainerById(ctx context.Context, id int) (*model.Con
 // У нового контейнера нет родительского элемента, глубина 0 и ID корневого контейнера равно самому себе
 func (r *pgRepository) CreateContainer(ctx context.Context, name *string, containerType *int) (*model.Container, error) {
 	var id int
+
 	q := `INSERT INTO containers (id, name, type, parent_id, root_id, depth)
 			SELECT sub.row_id, $1, $2, 0, sub.row_id, 0 FROM
     			(SELECT nextval('containers_id_seq'::regclass) as row_id) AS sub
@@ -63,7 +65,9 @@ func (r *pgRepository) GetChildrenContainers(ctx context.Context, this *model.Co
 		return nil, err
 	}
 	defer rows.Close()
+
 	var containers []model.Container
+
 	for rows.Next() {
 		container := model.Container{
 			Pid: this.Id,
@@ -71,6 +75,7 @@ func (r *pgRepository) GetChildrenContainers(ctx context.Context, this *model.Co
 		if err := rows.Scan(&container.Id, &container.Name, &container.Type, &container.Pid, &container.Rid, &container.Depth); err != nil {
 			return nil, err
 		}
+
 		containers = append(containers, container)
 	}
 	return containers, nil
@@ -85,7 +90,9 @@ func (r *pgRepository) GetParentContainers(ctx context.Context, this *model.Cont
 		return nil, err
 	}
 	defer rows.Close()
+
 	var containers []model.Container
+
 	for rows.Next() {
 		container := model.Container{
 			Pid: this.Id,
@@ -93,6 +100,7 @@ func (r *pgRepository) GetParentContainers(ctx context.Context, this *model.Cont
 		if err := rows.Scan(&container.Id, &container.Name, &container.Type, &container.Pid, &container.Rid, &container.Depth); err != nil {
 			return nil, err
 		}
+
 		containers = append(containers, container)
 	}
 	return containers, nil
@@ -133,15 +141,19 @@ func (r *pgRepository) GetContainerProducts(ctx context.Context, this *model.Con
 		return nil, err
 	}
 	defer rows.Close()
+
 	res := make([]model.RemainingProduct, 0)
+
 	for rows.Next() {
 		p := model.RemainingProduct{
 			Product: model.Product{Manufacturer: &model.Manufacturer{}},
 		}
-		err = rows.Scan(&p.ContainerId, &p.Id, &p.Name, &p.ItemNumber, &p.Manufacturer.Id, &p.Manufacturer.Name, &p.Quantity)
+
+		err = rows.Scan(&p.ContainerId, &p.Id, &p.Name, &p.ItemNumber, &p.Manufacturer.ID, &p.Manufacturer.Name, &p.Quantity)
 		if err != nil {
 			return nil, err
 		}
+
 		res = append(res, p)
 	}
 	return res, nil
