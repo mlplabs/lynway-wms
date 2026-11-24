@@ -16,8 +16,29 @@ import (
 )
 
 const (
-	idParam = "id"
+	idParam             = "id"
+	queryParam          = "q"
+	suggestLimitParam   = "l"
+	defaultLimitSuggest = 10
 )
+
+func getQueryParam(r *http.Request) string {
+	return r.URL.Query().Get(queryParam)
+}
+
+func getLimitSuggestParam(r *http.Request) (int, error) {
+	limitParam := r.URL.Query().Get(suggestLimitParam)
+	if limitParam == "" {
+		return defaultLimitSuggest, nil
+	}
+
+	limit, err := strconv.Atoi(limitParam)
+	if err != nil {
+		return 0, domainErr.NewBadRequest(fmt.Errorf("%s parameter is invalid: %w", suggestLimitParam, err))
+	}
+
+	return limit, nil
+}
 
 func getLoginUserRequest(r *http.Request) (*model.LoginUserRequest, error) {
 	req := dto.LoginUserRequest{}

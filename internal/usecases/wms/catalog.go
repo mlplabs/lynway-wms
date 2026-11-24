@@ -27,8 +27,12 @@ func (s *Service) SearchManufacturers(ctx context.Context, query string, limit i
 	return s.whs.SearchManufacturers(ctx, q, limit)
 }
 
+func (s *Service) GetManufacturerById(ctx context.Context, id int) (*model.Manufacturer, error) {
+	return s.whs.GetManufacturerById(ctx, id)
+}
+
 // ResolveManufacturer — Find, Clone or Create для производителей (точное совпадение по имени без учета регистра)
-func (s *Service) ResolveManufacturer(ctx context.Context, in model.ResolveManufacturerRequest) (*model.ResolveManufacturerResponse, error) {
+func (s *Service) ResolveManufacturer(ctx context.Context, in *model.ResolveManufacturerRequest) (*model.ResolveManufacturerResponse, error) {
 	name := strings.TrimSpace(in.Name)
 	if name == "" {
 		return nil, ErrEmptyName
@@ -67,6 +71,30 @@ func (s *Service) ResolveManufacturer(ctx context.Context, in model.ResolveManuf
 	return &model.ResolveManufacturerResponse{Manufacturer: created, Action: action}, nil
 }
 
+// UpdateManufacturer — прямое редактирование карточки производителя (исправление опечаток без клонирования)
+func (s *Service) UpdateManufacturer(ctx context.Context, id int, in *model.UpdateManufacturerRequest) (*model.Manufacturer, error) {
+	name := strings.TrimSpace(in.Name)
+	if name == "" {
+		return nil, ErrEmptyName
+	}
+
+	err := s.whs.UpdateItem(ctx, dbo.UpdateItemParams{
+		ID:   id,
+		Name: name,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	updated, err := s.whs.GetManufacturerById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return updated, nil
+}
+
 // SearchItems — поиск номенклатуры по barcode, sku, name (pg_trgm) или tags
 func (s *Service) SearchItems(ctx context.Context, query string, limit int) ([]model.Item, error) {
 	q := strings.TrimSpace(query)
@@ -83,8 +111,12 @@ func (s *Service) SearchItems(ctx context.Context, query string, limit int) ([]m
 	return res, nil
 }
 
+func (s *Service) GetItemById(ctx context.Context, id int) (*model.Item, error) {
+	return s.whs.GetItemById(ctx, id)
+}
+
 // ResolveItem — ядро килер-фичи «Find, Clone or Create» (сравнение по name, manufacturer_id, sku, barcode)
-func (s *Service) ResolveItem(ctx context.Context, in model.ResolveItemRequest) (*model.ResolveItemResponse, error) {
+func (s *Service) ResolveItem(ctx context.Context, in *model.ResolveItemRequest) (*model.ResolveItemResponse, error) {
 	name := strings.TrimSpace(in.Name)
 	if name == "" {
 		return nil, ErrEmptyName
@@ -97,7 +129,7 @@ func (s *Service) ResolveItem(ctx context.Context, in model.ResolveItemRequest) 
 	var orig *model.Item
 
 	if in.BaseID != nil && *in.BaseID > 0 {
-		loaded, err := s.whs.GetItemByID(ctx, *in.BaseID)
+		loaded, err := s.whs.GetItemById(ctx, *in.BaseID)
 		if err != nil {
 			return nil, err
 		}
@@ -147,7 +179,7 @@ func (s *Service) ResolveItem(ctx context.Context, in model.ResolveItemRequest) 
 
 		// В будущем здесь же в рамках одной транзакции копируем вложения (attachments) при orig != nil
 
-		created, err = txRepo.GetItemByID(ctx, newID)
+		created, err = txRepo.GetItemById(ctx, newID)
 
 		return err
 	})
@@ -164,7 +196,7 @@ func (s *Service) ResolveItem(ctx context.Context, in model.ResolveItemRequest) 
 
 // GetItemWithStock — детальная карточка товара + агрегированные остатки из storage
 func (s *Service) GetItemWithStock(ctx context.Context, id int) (*model.ItemDetails, error) {
-	it, err := s.whs.GetItemByID(ctx, id)
+	it, err := s.whs.GetItemById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +222,7 @@ func (s *Service) GetItemWithStock(ctx context.Context, id int) (*model.ItemDeta
 }
 
 // UpdateItem — прямое редактирование карточки товара (исправление опечаток без клонирования)
-func (s *Service) UpdateItem(ctx context.Context, id int, in model.UpdateItemRequest) (*model.Item, error) {
+func (s *Service) UpdateItem(ctx context.Context, id int, in *model.UpdateItemRequest) (*model.Item, error) {
 	name := strings.TrimSpace(in.Name)
 	if name == "" {
 		return nil, ErrEmptyName
@@ -220,7 +252,7 @@ func (s *Service) UpdateItem(ctx context.Context, id int, in model.UpdateItemReq
 		return nil, err
 	}
 
-	updated, err := s.whs.GetItemByID(ctx, id)
+	updated, err := s.whs.GetItemById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
