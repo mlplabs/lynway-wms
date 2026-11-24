@@ -167,14 +167,14 @@ func (c *HttpClient) ResolveManufacturer(ctx context.Context, req *dto.ResolveMa
 		SetContext(ctx).
 		SetBody(req).
 		SetResult(&result).
-		Post("/api/v1/items/resolve")
+		Post("/api/v1/manufacturers/resolve")
 
 	if err != nil {
-		return nil, fmt.Errorf("resolve item error: %w", err)
+		return nil, fmt.Errorf("resolve manufacturer error: %w", err)
 	}
 
 	if resp.IsError() {
-		return nil, fmt.Errorf("resolve item error: %w", errors.New(resp.Status()))
+		return nil, fmt.Errorf("resolve manufacturer error: %w", errors.New(resp.Status()))
 	}
 
 	return &result.Data, nil
