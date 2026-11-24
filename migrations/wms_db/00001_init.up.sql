@@ -86,12 +86,15 @@ CREATE UNIQUE INDEX idx_items_barcode_unique
 CREATE TABLE public.storage (
                                 row_id       varchar(36)              DEFAULT ''::character varying NOT NULL,
                                 row_time     timestamp with time zone DEFAULT now()                 NOT NULL,
+                                whs_id       integer,
                                 zone_id      integer,
                                 cell_id      integer REFERENCES public.cells(id),
                                 container_id integer,
                                 item_id      integer,
                                 quantity     integer,
-                                CONSTRAINT chk_storage_location CHECK (cell_id IS NOT NULL OR container_id IS NOT NULL)
+                                CONSTRAINT chk_storage_location CHECK (whs_id IS NOT NULL
+                                    AND zone_id IS NOT NULL
+                                    AND (container_id IS NOT NULL OR item_id IS NOT NULL))
 );
 
 CREATE INDEX idx_storage_balance ON public.storage (zone_id, cell_id, container_id, item_id) INCLUDE (quantity);
@@ -149,7 +152,7 @@ CREATE TABLE public.users (
 CREATE TABLE public.operations_inbox (
                                          key           varchar(64) PRIMARY KEY,
                                          response_code integer     NOT NULL,
-                                         response_body jsonb       NOT NULL,
+                                         response_body jsonb       DEFAULT '{}'::jsonb NOT NULL,
                                          created_at    timestamptz DEFAULT now() NOT NULL
 );
 

@@ -262,7 +262,7 @@ func (r *pgRepository) GetItemStockLocation(ctx context.Context, id int) ([]mode
 }
 
 func (r *pgRepository) UpdateItem(ctx context.Context, p dbo.UpdateItemParams) error {
-	res, err := r.dbTx.ExecContext(ctx, `
+	res, err := r.conn.ExecContext(ctx, `
 		UPDATE public.items
 		SET name            = $1,
 		    manufacturer_id = $2,
