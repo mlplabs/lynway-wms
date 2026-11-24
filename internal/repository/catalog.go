@@ -160,7 +160,7 @@ func (r *pgRepository) SearchItems(ctx context.Context, query string, limit int)
 	return items, nil
 }
 
-func (r *pgRepository) GetItemByID(ctx context.Context, baseID int) (*model.Item, error) {
+func (r *pgRepository) GetItemById(ctx context.Context, baseID int) (*model.Item, error) {
 	row := r.conn.QueryRowContext(ctx, `
 		SELECT i.id, i.name, i.manufacturer_id, m.name, i.sku, i.barcode, i.tags, i.attributes, i.created_at, i.updated_at
 		FROM public.items i

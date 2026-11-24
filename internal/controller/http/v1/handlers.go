@@ -44,14 +44,14 @@ func NewServiceHandler(router *chi.Mux, publicKey *rsa.PublicKey, service *wms.S
 			r.Route("/items", func(r chi.Router) {
 				r.Get("/suggest", wrapper.Data(h.itemsSuggest))
 				//r.Post("/resolve", wrapper.Data(h.itemsResolve))
-				//r.Get("/{id}", wrapper.Data(h.getItemById))
-				//r.Patch("/{id}", wrapper.Data(h.updateItem))
+				r.Get("/{id}", wrapper.Data(h.getItemById))
+				r.Patch("/{id}", wrapper.Data(h.updateItem))
 			})
 			r.Route("/manufacturers", func(r chi.Router) {
 				r.Get("/suggest", wrapper.Data(h.manufacturersSuggest))
 				//r.Post("/resolve", wrapper.Data(manufacturersResolve))
-				//r.Get("/{id}", wrapper.Data(h.getManufacturerById))
-				//r.Patch("/{id}", wrapper.Data(h.updateManufacturer))
+				r.Get("/{id}", wrapper.Data(h.getManufacturerById))
+				r.Patch("/{id}", wrapper.Data(h.updateManufacturer))
 			})
 		})
 		// для админки

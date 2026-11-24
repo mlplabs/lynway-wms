@@ -36,7 +36,7 @@ type PgRepository interface {
 	CreateManufacturer(ctx context.Context, name string) (*model.Manufacturer, error)
 
 	SearchItems(ctx context.Context, query string, limit int) ([]model.Item, error)
-	GetItemByID(ctx context.Context, baseID int) (*model.Item, error)
+	GetItemById(ctx context.Context, baseID int) (*model.Item, error)
 	FindExactItem(ctx context.Context, name string, mfgID *int, sku, barcode *string) (*model.Item, error)
 	CreateItem(ctx context.Context, p *dbo.CreateItemParams) (int, error)
 	UpdateItem(ctx context.Context, p dbo.UpdateItemParams) error

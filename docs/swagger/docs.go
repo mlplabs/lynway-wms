@@ -106,7 +106,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.DecodeRequest"
+                            "$ref": "#/definitions/dto.DecodeRequest"
                         }
                     }
                 ],
@@ -122,7 +122,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.DecodeResponse"
+                                            "$ref": "#/definitions/dto.DecodeResponse"
                                         }
                                     }
                                 }
@@ -132,7 +132,263 @@ const docTemplate = `{
                 }
             }
         },
-        "/print/agents": {
+        "/items/suggest": {
+            "get": {
+                "description": "точное совпадение по ` + "`" + `barcode` + "`" + `/` + "`" + `sku` + "`" + ` или нечеткое по ` + "`" + `name` + "`" + ` и ` + "`" + `tags` + "`" + ` через ` + "`" + `pg_trgm` + "`" + `)",
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "поиск номенклатуры для автокомплита",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "поисковая строка",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "количество результатов, по-умолчанию 10",
+                        "name": "l",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "список номенклатуры",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.ItemSuggest"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/items/{id}": {
+            "get": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "возвращает элемент номенклатуры",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "идентификатор номенклатуры",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "элемент номенклатуры",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ItemResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "обновляет элемент номенклатуры",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "идентификатор номенклатуры",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "данные номенклатуры",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "элемент номенклатуры",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ItemResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/manufacturers/suggest": {
+            "get": {
+                "description": "совпадение по ` + "`" + `name` + "`" + `)",
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "поиск производителя для автокомплита",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "поисковая строка",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "количество результатов, по-умолчанию 10",
+                        "name": "l",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "список производителей",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.ManufacturerSuggest"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/manufacturers/{id}": {
+            "get": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "возвращает элемент производителя",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "идентификатор производителя",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "элемент производителя",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ManufacturerResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "обновляет элемент производителя",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "идентификатор производителя",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "данные производителя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateManufacturerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "элемент производителя",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ManufacturerResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/print/agents/sync": {
             "post": {
                 "description": "агент обновляет данные о себе на сервере и обновляет список принтеров",
                 "tags": [
@@ -141,12 +397,12 @@ const docTemplate = `{
                 "summary": "обновление данных агента печати",
                 "parameters": [
                     {
-                        "description": "данные агена",
+                        "description": "данные агента",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.AgentInfoRequest"
+                            "$ref": "#/definitions/dto.AgentInfoRequest"
                         }
                     }
                 ],
@@ -176,7 +432,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.GetPrintTaskResponse"
+                                            "$ref": "#/definitions/dto.GetPrintTaskResponse"
                                         }
                                     }
                                 }
@@ -200,7 +456,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.UpdatePrintTaskStatusRequest"
+                            "$ref": "#/definitions/dto.UpdatePrintTaskStatusRequest"
                         }
                     }
                 ],
@@ -213,6 +469,201 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AgentInfoRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Название агента (в разработке)",
+                    "type": "string"
+                },
+                "printers": {
+                    "description": "Список принтеров",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.PrinterInfo"
+                    }
+                },
+                "version": {
+                    "description": "Версия агента (в разработке)",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DecodeRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Данные от сканера",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DecodeResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "ID данных, если имеются",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "Тип данных",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.EntityTypeId": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3
+            ],
+            "x-enum-comments": {
+                "EntityTypeIdContainer": "Контейнеры",
+                "EntityTypeIdProduct": "Товары",
+                "EntityTypeIdTypeCell": "Ячейки"
+            },
+            "x-enum-descriptions": [
+                "Товары",
+                "Контейнеры",
+                "Ячейки"
+            ],
+            "x-enum-varnames": [
+                "EntityTypeIdProduct",
+                "EntityTypeIdContainer",
+                "EntityTypeIdTypeCell"
+            ]
+        },
+        "dto.GetPrintTaskResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "RAW (base64) данные для печати",
+                    "type": "string"
+                },
+                "entity_id": {
+                    "description": "ID данных",
+                    "type": "integer"
+                },
+                "entity_type_id": {
+                    "description": "ID типа данных",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.EntityTypeId"
+                        }
+                    ]
+                },
+                "id": {
+                    "description": "ID задачи",
+                    "type": "integer"
+                },
+                "labels": {
+                    "description": "Типовые метки",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "printer_name": {
+                    "description": "Название принтера, на который надо печатать",
+                    "type": "string"
+                },
+                "to_file": {
+                    "description": "Печать в файл (в разработке)",
+                    "type": "boolean"
+                },
+                "type": {
+                    "description": "Тип задачи",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.PrintTaskType"
+                        }
+                    ]
+                }
+            }
+        },
+        "dto.ItemResponse": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "barcode": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "manufacturer_id": {
+                    "type": "integer"
+                },
+                "manufacturer_name": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ItemSuggest": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "barcode": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "manufacturer_id": {
+                    "type": "integer"
+                },
+                "manufacturer_name": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.LoginRequest": {
             "type": "object",
             "properties": {
@@ -241,6 +692,52 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ManufacturerResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ManufacturerSuggest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PrintTaskType": {
+            "type": "integer",
+            "enum": [
+                1
+            ],
+            "x-enum-comments": {
+                "PrintTaskTypeLabel": "Стандартная этикетка"
+            },
+            "x-enum-descriptions": [
+                "Стандартная этикетка"
+            ],
+            "x-enum-varnames": [
+                "PrintTaskTypeLabel"
+            ]
+        },
+        "dto.PrinterInfo": {
+            "type": "object",
+            "properties": {
+                "printer_name": {
+                    "description": "Название принтера",
+                    "type": "string"
+                }
+            }
+        },
         "dto.RefreshRequest": {
             "type": "object",
             "properties": {
@@ -260,144 +757,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mlplabs_lynway-wms_pkg_dto.AgentInfoRequest": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "description": "Название агента (в разработке)",
-                    "type": "string"
-                },
-                "printers": {
-                    "description": "Список принтеров",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.PrinterInfo"
-                    }
-                },
-                "version": {
-                    "description": "Версия агента (в разработке)",
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_mlplabs_lynway-wms_pkg_dto.DecodeRequest": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "Данные от сканера",
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_mlplabs_lynway-wms_pkg_dto.DecodeResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "ID данных, если имеются",
-                    "type": "integer"
-                },
-                "type": {
-                    "description": "Тип данных",
-                    "type": "integer"
-                }
-            }
-        },
-        "github_com_mlplabs_lynway-wms_pkg_dto.EntityTypeId": {
-            "type": "integer",
-            "enum": [
-                1,
-                2,
-                3
-            ],
-            "x-enum-comments": {
-                "EntityTypeIdContainer": "Контейнеры",
-                "EntityTypeIdProduct": "Товары",
-                "EntityTypeIdTypeCell": "Ячейки"
-            },
-            "x-enum-descriptions": [
-                "Товары",
-                "Контейнеры",
-                "Ячейки"
-            ],
-            "x-enum-varnames": [
-                "EntityTypeIdProduct",
-                "EntityTypeIdContainer",
-                "EntityTypeIdTypeCell"
-            ]
-        },
-        "github_com_mlplabs_lynway-wms_pkg_dto.GetPrintTaskResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "description": "RAW (base64) данные для печати",
-                    "type": "string"
-                },
-                "entity_id": {
-                    "description": "ID данных",
-                    "type": "integer"
-                },
-                "entity_type_id": {
-                    "description": "ID типа данных",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.EntityTypeId"
-                        }
-                    ]
-                },
-                "id": {
-                    "description": "ID задачи",
-                    "type": "integer"
-                },
-                "labels": {
-                    "description": "Типовые метки",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "printer_name": {
-                    "description": "Название принтера, на который надо печатать",
-                    "type": "string"
-                },
-                "to_file": {
-                    "description": "Печать в файл (в разработке)",
-                    "type": "boolean"
-                },
-                "type": {
-                    "description": "Тип задачи",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.PrintTaskType"
-                        }
-                    ]
-                }
-            }
-        },
-        "github_com_mlplabs_lynway-wms_pkg_dto.PrintTaskType": {
-            "type": "integer",
-            "enum": [
-                1
-            ],
-            "x-enum-comments": {
-                "PrintTaskTypeLabel": "Стандартная этикетка"
-            },
-            "x-enum-descriptions": [
-                "Стандартная этикетка"
-            ],
-            "x-enum-varnames": [
-                "PrintTaskTypeLabel"
-            ]
-        },
-        "github_com_mlplabs_lynway-wms_pkg_dto.PrinterInfo": {
-            "type": "object",
-            "properties": {
-                "printer_name": {
-                    "description": "Название принтера",
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_mlplabs_lynway-wms_pkg_dto.TaskStatus": {
+        "dto.TaskStatus": {
             "type": "integer",
             "enum": [
                 0,
@@ -424,14 +784,51 @@ const docTemplate = `{
                 "PrintTaskStatusError"
             ]
         },
-        "github_com_mlplabs_lynway-wms_pkg_dto.UpdatePrintTaskStatusRequest": {
+        "dto.UpdateItemRequest": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "barcode": {
+                    "type": "string"
+                },
+                "manufacturer_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.UpdateManufacturerRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdatePrintTaskStatusRequest": {
             "type": "object",
             "properties": {
                 "id": {
                     "type": "integer"
                 },
                 "status": {
-                    "$ref": "#/definitions/github_com_mlplabs_lynway-wms_pkg_dto.TaskStatus"
+                    "$ref": "#/definitions/dto.TaskStatus"
                 }
             }
         },

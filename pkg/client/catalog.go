@@ -49,3 +49,89 @@ func (c *HttpClient) ManufacturersSuggest(ctx context.Context, text string, limi
 
 	return &result.Data, nil
 }
+
+// GetItemById возвращает объект номенклатуры
+func (c *HttpClient) GetItemById(ctx context.Context, id int) (*dto.ItemResponse, error) {
+	result := struct {
+		Data dto.ItemResponse `json:"data"`
+	}{}
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&result).
+		Get(fmt.Sprintf("/api/v1/items/%d", id))
+
+	if err != nil {
+		return nil, fmt.Errorf("item by id error: %w", err)
+	}
+
+	if resp.IsError() {
+		return nil, fmt.Errorf("item by id error: %w", errors.New(resp.Status()))
+	}
+
+	return &result.Data, nil
+}
+
+// GetManufacturerById возвращает объект производителя
+func (c *HttpClient) GetManufacturerById(ctx context.Context, id int) (*dto.ManufacturerResponse, error) {
+	result := struct {
+		Data dto.ManufacturerResponse `json:"data"`
+	}{}
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetResult(&result).
+		Get(fmt.Sprintf("/api/v1/manufacturers/%d", id))
+
+	if err != nil {
+		return nil, fmt.Errorf("manufacturer by id error: %w", err)
+	}
+
+	if resp.IsError() {
+		return nil, fmt.Errorf("manufacturer by id error: %w", errors.New(resp.Status()))
+	}
+
+	return &result.Data, nil
+}
+
+// UpdateItem обновляет и возвращает объект номенклатуры
+func (c *HttpClient) UpdateItem(ctx context.Context, id int, req *dto.UpdateItemRequest) (*dto.ItemResponse, error) {
+	result := struct {
+		Data dto.ItemResponse `json:"data"`
+	}{}
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetBody(req).
+		SetResult(&result).
+		Patch(fmt.Sprintf("/api/v1/items/%d", id))
+
+	if err != nil {
+		return nil, fmt.Errorf("item by id error: %w", err)
+	}
+
+	if resp.IsError() {
+		return nil, fmt.Errorf("item by id error: %w", errors.New(resp.Status()))
+	}
+
+	return &result.Data, nil
+}
+
+// UpdateManufacturer обновляет и возвращает объект производителя
+func (c *HttpClient) UpdateManufacturer(ctx context.Context, id int, req *dto.UpdateManufacturerRequest) (*dto.ManufacturerResponse, error) {
+	result := struct {
+		Data dto.ManufacturerResponse `json:"data"`
+	}{}
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetBody(req).
+		SetResult(&result).
+		Patch(fmt.Sprintf("/api/v1/manufacturers/%d", id))
+
+	if err != nil {
+		return nil, fmt.Errorf("manufacturer by id error: %w", err)
+	}
+
+	if resp.IsError() {
+		return nil, fmt.Errorf("manufacturer by id error: %w", errors.New(resp.Status()))
+	}
+
+	return &result.Data, nil
+}

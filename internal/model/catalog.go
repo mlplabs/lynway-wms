@@ -61,16 +61,16 @@ type ResolveItemResponse struct {
 }
 
 type UpdateItemRequest struct {
-	Name           string          `json:"name"`
-	ManufacturerID *int            `json:"manufacturer_id"`
-	SKU            *string         `json:"sku"`
-	Barcode        *string         `json:"barcode"`
-	Tags           []string        `json:"tags"`
-	Attributes     json.RawMessage `json:"attributes"`
+	Name           string
+	ManufacturerID *int
+	SKU            *string
+	Barcode        *string
+	Tags           []string
+	Attributes     json.RawMessage
 }
 
 type UpdateManufacturerRequest struct {
-	Name string `json:"name"`
+	Name string
 }
 
 type ItemStockLocation struct {
