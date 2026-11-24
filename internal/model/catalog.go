@@ -13,10 +13,24 @@ const (
 	ActionCreated ResolveAction = "CREATED"
 )
 
+// Item - номенклатура
+type Item struct {
+	ID               int
+	Name             string
+	ManufacturerID   *int
+	ManufacturerName *string
+	SKU              *string
+	Barcode          *string
+	Tags             []string
+	Attributes       json.RawMessage
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
 // Manufacturer - производитель
 type Manufacturer struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID   int
+	Name string
 }
 
 // ResolveManufacturerRequest - FCC структура запроса создания/выбора производителя
@@ -29,20 +43,6 @@ type ResolveManufacturerRequest struct {
 type ResolveManufacturerResponse struct {
 	Manufacturer *Manufacturer `json:"manufacturer"`
 	Action       ResolveAction `json:"action"`
-}
-
-// Item - номенклатура
-type Item struct {
-	ID               int             `json:"id"`
-	Name             string          `json:"name"`
-	ManufacturerID   *int            `json:"manufacturer_id,omitempty"`
-	ManufacturerName *string         `json:"manufacturer_name,omitempty"`
-	SKU              *string         `json:"sku,omitempty"`
-	Barcode          *string         `json:"barcode,omitempty"`
-	Tags             []string        `json:"tags"`
-	Attributes       json.RawMessage `json:"attributes"`
-	CreatedAt        time.Time       `json:"created_at"`
-	UpdatedAt        time.Time       `json:"updated_at"`
 }
 
 type ResolveItemRequest struct {
@@ -67,6 +67,10 @@ type UpdateItemRequest struct {
 	Barcode        *string         `json:"barcode"`
 	Tags           []string        `json:"tags"`
 	Attributes     json.RawMessage `json:"attributes"`
+}
+
+type UpdateManufacturerRequest struct {
+	Name string `json:"name"`
 }
 
 type ItemStockLocation struct {

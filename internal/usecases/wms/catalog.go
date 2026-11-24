@@ -67,6 +67,30 @@ func (s *Service) ResolveManufacturer(ctx context.Context, in model.ResolveManuf
 	return &model.ResolveManufacturerResponse{Manufacturer: created, Action: action}, nil
 }
 
+// UpdateManufacturer — прямое редактирование карточки производителя (исправление опечаток без клонирования)
+func (s *Service) UpdateManufacturer(ctx context.Context, id int, in model.UpdateManufacturerRequest) (*model.Manufacturer, error) {
+	name := strings.TrimSpace(in.Name)
+	if name == "" {
+		return nil, ErrEmptyName
+	}
+
+	err := s.whs.UpdateItem(ctx, dbo.UpdateItemParams{
+		ID:   id,
+		Name: name,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	updated, err := s.whs.GetManufacturerById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return updated, nil
+}
+
 // SearchItems — поиск номенклатуры по barcode, sku, name (pg_trgm) или tags
 func (s *Service) SearchItems(ctx context.Context, query string, limit int) ([]model.Item, error) {
 	q := strings.TrimSpace(query)

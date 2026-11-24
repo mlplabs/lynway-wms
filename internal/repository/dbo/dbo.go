@@ -17,6 +17,11 @@ type UpdateItemParams struct {
 	Attributes     []byte
 }
 
+type UpdateManufacturerParams struct {
+	ID   int
+	Name string
+}
+
 type CreateItemParams struct {
 	Name           string
 	ManufacturerID *int
