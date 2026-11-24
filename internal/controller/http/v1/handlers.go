@@ -43,13 +43,13 @@ func NewServiceHandler(router *chi.Mux, publicKey *rsa.PublicKey, service *wms.S
 		r.Group(func(r chi.Router) {
 			r.Route("/items", func(r chi.Router) {
 				r.Get("/suggest", wrapper.Data(h.itemsSuggest))
-				//r.Post("/resolve", wrapper.Data(h.itemsResolve))
+				r.Post("/resolve", wrapper.Data(h.itemsResolve))
 				r.Get("/{id}", wrapper.Data(h.getItemById))
 				r.Patch("/{id}", wrapper.Data(h.updateItem))
 			})
 			r.Route("/manufacturers", func(r chi.Router) {
 				r.Get("/suggest", wrapper.Data(h.manufacturersSuggest))
-				//r.Post("/resolve", wrapper.Data(manufacturersResolve))
+				r.Post("/resolve", wrapper.Data(h.manufacturersResolve))
 				r.Get("/{id}", wrapper.Data(h.getManufacturerById))
 				r.Patch("/{id}", wrapper.Data(h.updateManufacturer))
 			})

@@ -35,29 +35,29 @@ type Manufacturer struct {
 
 // ResolveManufacturerRequest - FCC структура запроса создания/выбора производителя
 type ResolveManufacturerRequest struct {
-	BaseID *int   `json:"base_id"`
-	Name   string `json:"name"`
+	BaseID *int
+	Name   string
 }
 
 // ResolveManufacturerResponse - структура ответа создания/выбора производителя
 type ResolveManufacturerResponse struct {
-	Manufacturer *Manufacturer `json:"manufacturer"`
-	Action       ResolveAction `json:"action"`
+	Manufacturer *Manufacturer
+	Action       ResolveAction
 }
 
 type ResolveItemRequest struct {
-	BaseID         *int            `json:"base_id"`
-	Name           string          `json:"name"`
-	ManufacturerID *int            `json:"manufacturer_id"`
-	SKU            *string         `json:"sku"`
-	Barcode        *string         `json:"barcode"`
-	Tags           []string        `json:"tags"`
-	Attributes     json.RawMessage `json:"attributes"`
+	BaseID         *int
+	Name           string
+	ManufacturerID *int
+	SKU            *string
+	Barcode        *string
+	Tags           []string
+	Attributes     json.RawMessage
 }
 
 type ResolveItemResponse struct {
-	Item   *Item         `json:"item"`
-	Action ResolveAction `json:"action"`
+	Item   *Item
+	Action ResolveAction
 }
 
 type UpdateItemRequest struct {

@@ -123,6 +123,46 @@
                 }
             }
         },
+        "/items/resolve": {
+            "post": {
+                "description": "**«FCC»**:\n- Передан `base_id` + ключевые поля (`name`, `sku`, `barcode`) **изменены** -\u003e создает новый `Item`, наследуя `image_path`, `tags`, `attributes` из оригинала.\n- Передан `base_id` + ключевые поля **не изменены** -\u003e возвращает оригинал.",
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "обновляет или создает новый элемент номенклатуры",
+                "parameters": [
+                    {
+                        "description": "данные производителя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResolveItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "элемент производителя",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ResolveItemResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/items/suggest": {
             "get": {
                 "description": "точное совпадение по `barcode`/`sku` или нечеткое по `name` и `tags` через `pg_trgm`)",
@@ -242,6 +282,46 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/dto.ItemResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/manufacturers/resolve": {
+            "post": {
+                "description": "**«FCC»**:\n- Передан `base_id` + ключевые поля (`name`) **изменены** -\u003e создает новый `Manufacturer`.\n- Передан `base_id` + ключевые поля **не изменены** -\u003e возвращает оригинал.",
+                "tags": [
+                    "Catalog"
+                ],
+                "summary": "обновляет или создает новый элемент производителя",
+                "parameters": [
+                    {
+                        "description": "данные производителя",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResolveManufacturerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "элемент производителя",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ResolveManufacturerResponse"
                                         }
                                     }
                                 }
@@ -745,6 +825,84 @@
                 },
                 "refresh_token": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.ResolveAction": {
+            "type": "string",
+            "enum": [
+                "FOUND",
+                "CLONED",
+                "CREATED"
+            ],
+            "x-enum-varnames": [
+                "ActionFound",
+                "ActionCloned",
+                "ActionCreated"
+            ]
+        },
+        "dto.ResolveItemRequest": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "barcode": {
+                    "type": "string"
+                },
+                "base_id": {
+                    "type": "integer"
+                },
+                "manufacturer_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sku": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.ResolveItemResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "$ref": "#/definitions/dto.ResolveAction"
+                },
+                "item": {
+                    "$ref": "#/definitions/dto.ItemResponse"
+                }
+            }
+        },
+        "dto.ResolveManufacturerRequest": {
+            "type": "object",
+            "properties": {
+                "base_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ResolveManufacturerResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "$ref": "#/definitions/dto.ResolveAction"
+                },
+                "manufacturer": {
+                    "$ref": "#/definitions/dto.ManufacturerResponse"
                 }
             }
         },

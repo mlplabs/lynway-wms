@@ -192,6 +192,58 @@ definitions:
       refresh_token:
         type: string
     type: object
+  dto.ResolveAction:
+    enum:
+    - FOUND
+    - CLONED
+    - CREATED
+    type: string
+    x-enum-varnames:
+    - ActionFound
+    - ActionCloned
+    - ActionCreated
+  dto.ResolveItemRequest:
+    properties:
+      attributes:
+        items:
+          type: integer
+        type: array
+      barcode:
+        type: string
+      base_id:
+        type: integer
+      manufacturer_id:
+        type: integer
+      name:
+        type: string
+      sku:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.ResolveItemResponse:
+    properties:
+      action:
+        $ref: '#/definitions/dto.ResolveAction'
+      item:
+        $ref: '#/definitions/dto.ItemResponse'
+    type: object
+  dto.ResolveManufacturerRequest:
+    properties:
+      base_id:
+        type: integer
+      name:
+        type: string
+    type: object
+  dto.ResolveManufacturerResponse:
+    properties:
+      action:
+        $ref: '#/definitions/dto.ResolveAction'
+      manufacturer:
+        $ref: '#/definitions/dto.ManufacturerResponse'
+    type: object
   dto.TaskStatus:
     enum:
     - 0
@@ -368,6 +420,32 @@ paths:
       summary: обновляет элемент номенклатуры
       tags:
       - Catalog
+  /items/resolve:
+    post:
+      description: |-
+        **«FCC»**:
+        - Передан `base_id` + ключевые поля (`name`, `sku`, `barcode`) **изменены** -> создает новый `Item`, наследуя `image_path`, `tags`, `attributes` из оригинала.
+        - Передан `base_id` + ключевые поля **не изменены** -> возвращает оригинал.
+      parameters:
+      - description: данные производителя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResolveItemRequest'
+      responses:
+        "200":
+          description: элемент производителя
+          schema:
+            allOf:
+            - $ref: '#/definitions/wrapper.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ResolveItemResponse'
+              type: object
+      summary: обновляет или создает новый элемент номенклатуры
+      tags:
+      - Catalog
   /items/suggest:
     get:
       description: точное совпадение по `barcode`/`sku` или нечеткое по `name` и `tags`
@@ -442,6 +520,32 @@ paths:
                   $ref: '#/definitions/dto.ManufacturerResponse'
               type: object
       summary: обновляет элемент производителя
+      tags:
+      - Catalog
+  /manufacturers/resolve:
+    post:
+      description: |-
+        **«FCC»**:
+        - Передан `base_id` + ключевые поля (`name`) **изменены** -> создает новый `Manufacturer`.
+        - Передан `base_id` + ключевые поля **не изменены** -> возвращает оригинал.
+      parameters:
+      - description: данные производителя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResolveManufacturerRequest'
+      responses:
+        "200":
+          description: элемент производителя
+          schema:
+            allOf:
+            - $ref: '#/definitions/wrapper.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ResolveManufacturerResponse'
+              type: object
+      summary: обновляет или создает новый элемент производителя
       tags:
       - Catalog
   /manufacturers/suggest:

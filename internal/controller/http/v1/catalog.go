@@ -145,6 +145,58 @@ func (h *ServiceHandler) updateManufacturer(w http.ResponseWriter, r *http.Reque
 	return manufacturerToDTO(res), nil
 }
 
+// itemsResolve
+// @Tags Catalog
+// @Summary обновляет или создает новый элемент номенклатуры
+// @Description **«FCC»**:
+// @Description   - Передан `base_id` + ключевые поля (`name`, `sku`, `barcode`) **изменены** -> создает новый `Item`, наследуя `image_path`, `tags`, `attributes` из оригинала.
+// @Description   - Передан `base_id` + ключевые поля **не изменены** -> возвращает оригинал.
+// @Router /items/resolve [post]
+// @Param request body dto.ResolveItemRequest true "данные производителя"
+// @Success	200 {object} wrapper.Data{data=dto.ResolveItemResponse} "элемент производителя"
+func (h *ServiceHandler) itemsResolve(w http.ResponseWriter, r *http.Request) (any, error) {
+	req, err := getResolveItemRequest(r)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := h.service.ResolveItem(r.Context(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.ResolveItemResponse{
+		Item:   itemToDTO(res.Item),
+		Action: dto.ResolveAction(res.Action),
+	}, nil
+}
+
+// manufacturersResolve
+// @Tags Catalog
+// @Summary обновляет или создает новый элемент производителя
+// @Description **«FCC»**:
+// @Description   - Передан `base_id` + ключевые поля (`name`) **изменены** -> создает новый `Manufacturer`.
+// @Description   - Передан `base_id` + ключевые поля **не изменены** -> возвращает оригинал.
+// @Router /manufacturers/resolve [post]
+// @Param request body dto.ResolveManufacturerRequest true "данные производителя"
+// @Success	200 {object} wrapper.Data{data=dto.ResolveManufacturerResponse} "элемент производителя"
+func (h *ServiceHandler) manufacturersResolve(w http.ResponseWriter, r *http.Request) (any, error) {
+	req, err := getResolveManufacturerRequest(r)
+	if err != nil {
+		return nil, err
+	}
+	
+	res, err := h.service.ResolveManufacturer(r.Context(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.ResolveManufacturerResponse{
+		Manufacturer: manufacturerToDTO(res.Manufacturer),
+		Action:       dto.ResolveAction(res.Action),
+	}, nil
+}
+
 func itemToDTO(in *model.Item) *dto.ItemResponse {
 	if in == nil {
 		return nil
@@ -232,5 +284,36 @@ func getUpdateManufacturerRequest(r *http.Request) (*model.UpdateManufacturerReq
 	}
 	return &model.UpdateManufacturerRequest{
 		Name: req.Name,
+	}, nil
+}
+
+func getResolveItemRequest(r *http.Request) (*model.ResolveItemRequest, error) {
+	req := dto.ResolveItemRequest{}
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil && err != io.EOF {
+		return nil, domainErr.NewBadRequest(fmt.Errorf("invalid request body, %w", err))
+	}
+	return &model.ResolveItemRequest{
+		BaseID:         req.BaseID,
+		Name:           req.Name,
+		ManufacturerID: req.ManufacturerID,
+		SKU:            req.SKU,
+		Barcode:        req.Barcode,
+		Tags:           req.Tags,
+		Attributes:     req.Attributes,
+	}, nil
+}
+
+func getResolveManufacturerRequest(r *http.Request) (*model.ResolveManufacturerRequest, error) {
+	req := dto.ResolveManufacturerRequest{}
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil && err != io.EOF {
+		return nil, domainErr.NewBadRequest(fmt.Errorf("invalid request body, %w", err))
+	}
+	return &model.ResolveManufacturerRequest{
+		BaseID: req.BaseID,
+		Name:   req.Name,
 	}, nil
 }

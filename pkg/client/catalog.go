@@ -135,3 +135,47 @@ func (c *HttpClient) UpdateManufacturer(ctx context.Context, id int, req *dto.Up
 
 	return &result.Data, nil
 }
+
+// ResolveItem  обновляет или создает новый элемент номенклатуры
+func (c *HttpClient) ResolveItem(ctx context.Context, req *dto.ResolveItemRequest) (*dto.ResolveItemResponse, error) {
+	result := struct {
+		Data dto.ResolveItemResponse `json:"data"`
+	}{}
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetBody(req).
+		SetResult(&result).
+		Post("/api/v1/items/resolve")
+
+	if err != nil {
+		return nil, fmt.Errorf("resolve item error: %w", err)
+	}
+
+	if resp.IsError() {
+		return nil, fmt.Errorf("resolve item error: %w", errors.New(resp.Status()))
+	}
+
+	return &result.Data, nil
+}
+
+// ResolveManufacturer обновляет или создает новый элемент производителя
+func (c *HttpClient) ResolveManufacturer(ctx context.Context, req *dto.ResolveManufacturerRequest) (*dto.ResolveManufacturerResponse, error) {
+	result := struct {
+		Data dto.ResolveManufacturerResponse `json:"data"`
+	}{}
+	resp, err := c.client.R().
+		SetContext(ctx).
+		SetBody(req).
+		SetResult(&result).
+		Post("/api/v1/items/resolve")
+
+	if err != nil {
+		return nil, fmt.Errorf("resolve item error: %w", err)
+	}
+
+	if resp.IsError() {
+		return nil, fmt.Errorf("resolve item error: %w", errors.New(resp.Status()))
+	}
+
+	return &result.Data, nil
+}
