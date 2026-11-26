@@ -3,12 +3,15 @@ package http
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
 	pkgErr "github.com/mlplabs/common-go-pkg/pkg/http/errors"
 	domainErr "github.com/mlplabs/common-go-pkg/pkg/http/errors/custom"
 )
+
+const idempotencyKey = "Idempotency-Key"
 
 type AccessTokenKey struct{}
 
@@ -56,4 +59,29 @@ func APIKeyValidate(apiKeys map[string]struct{}) func(http.Handler) http.Handler
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+type ctxKeyIdempotency struct{}
+
+func WithIdempotencyKey(ctx context.Context, key string) context.Context {
+	return context.WithValue(ctx, ctxKeyIdempotency{}, key)
+}
+
+func RequireIdempotencyKey() func(handler http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			key := r.Header.Get(idempotencyKey)
+			if key == "" {
+				pkgErr.SetError(w, r, domainErr.NewBadRequest(fmt.Errorf("missing Idempotency-Key header")))
+				return
+			}
+			ctx := WithIdempotencyKey(r.Context(), key)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func IdempotencyKeyFromContext(ctx context.Context) string {
+	key, _ := ctx.Value(ctxKeyIdempotency{}).(string)
+	return key
 }

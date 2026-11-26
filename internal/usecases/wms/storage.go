@@ -2,6 +2,7 @@ package wms
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"time"
@@ -14,14 +15,13 @@ import (
 func (s *Service) ExecuteIdempotent(
 	ctx context.Context,
 	idempotencyKey string,
-	op func(txRepo repository.PgRepository) (code int, body []byte, err error),
-) (int, []byte, error) {
+	op func(txRepo repository.PgRepository) (uuid.UUID, error),
+) (uuid.UUID, error) {
 	if idempotencyKey == "" {
-		return 0, nil, model.ErrInvalidMovement
+		return uuid.Nil, model.ErrInvalidMovement
 	}
 
-	var resCode int
-	var resBody []byte
+	var resUUID uuid.UUID
 
 	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
 		// 1. Блокируем ключ, чтобы параллельные ретраи с Android-клиента ждали первый запрос
@@ -29,40 +29,43 @@ func (s *Service) ExecuteIdempotent(
 			return err
 		}
 
-		// 2. Если операция уже была выполнена ранее — возвращаем сохраненный HTTP-ответ без повторного списания
+		// 2. Если операция уже была выполнена ранее — достаем сохраненный UUID без повторного списания
 		existing, err := txRepo.GetInboxRecord(ctx, idempotencyKey)
 		if err != nil {
 			return err
 		}
 		if existing != nil {
-			resCode = existing.ResponseCode
-			resBody = existing.ResponseBody
+			if err := json.Unmarshal(existing.ResponseBody, &resUUID); err != nil {
+				return fmt.Errorf("unmarshal inbox row_id: %w", err)
+			}
 			return nil
 		}
 
 		// 3. Выполняем саму складскую операцию на том же txRepo (внутри той же транзакции)
-		code, body, err := op(txRepo)
+		rowID, err := op(txRepo)
 		if err != nil {
-			// Если бизнес-валидация упала (например, ErrInsufficientStock) — транзакция откатится,
-			// запись в operations_inbox НЕ создастся, и клиент сможет исправить запрос и повторить с тем же ключом
 			return err
+		}
+
+		body, err := json.Marshal(rowID)
+		if err != nil {
+			return fmt.Errorf("marshal inbox row_id: %w", err)
 		}
 
 		// 4. Фиксируем результат в operations_inbox перед коммитом транзакции
 		if err := txRepo.SaveInboxRecord(ctx, model.InboxRecord{
 			Key:          idempotencyKey,
-			ResponseCode: code,
+			ResponseCode: 200,
 			ResponseBody: body,
 		}); err != nil {
 			return err
 		}
 
-		resCode = code
-		resBody = body
+		resUUID = rowID
 		return nil
 	})
 
-	return resCode, resBody, err
+	return resUUID, err
 }
 
 // --- Operation 1 & 2: Приемка товара (в зону, в ячейку или в контейнер) ---

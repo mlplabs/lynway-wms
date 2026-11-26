@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/mlplabs/lynway-wms/internal/repository/bootstrap"
 
@@ -315,16 +316,18 @@ func TestStorageMatrix_DispatchAndIdempotency(t *testing.T) {
 
 		// Идемпотентное списание (Op 8) — два вызова с одним ключом спишут товар только один раз
 		idemKey := fmt.Sprintf("dispatch-%d", time.Now().UnixNano())
+		var firstRowID uuid.UUID
 		for i := 0; i < 2; i++ {
-			code, _, err := svc.ExecuteIdempotent(ctx, idemKey, func(txRepo repository.PgRepository) (int, []byte, error) {
-				rowID, err := svc.DispatchItemTx(ctx, txRepo, locA, itemID, 15)
-				if err != nil {
-					return 0, nil, err
-				}
-				return 200, []byte(fmt.Sprintf(`{"row_id":%q}`, rowID.String())), nil
+			rowID, err := svc.ExecuteIdempotent(ctx, idemKey, func(txRepo repository.PgRepository) (uuid.UUID, error) {
+				return svc.DispatchItemTx(ctx, txRepo, locA, itemID, 15)
 			})
-			if err != nil || code != 200 {
-				t.Fatalf("idempotent call %d failed: code=%d, err=%v", i, code, err)
+			if err != nil {
+				t.Fatalf("idempotent call %d failed: err=%v", i, err)
+			}
+			if i == 0 {
+				firstRowID = rowID
+			} else if rowID != firstRowID {
+				t.Fatalf("expected same rowID %s on retry, got %s", firstRowID, rowID)
 			}
 		}
 

@@ -2,9 +2,7 @@ module github.com/mlplabs/lynway-wms
 
 go 1.25.11
 
-replace github.com/mlplabs/common-go-pkg => github.com/mlplabs/common-go-pkg v0.0.6
-
-//replace github.com/mlplabs/common-go-pkg => ../common-go-pkg
+replace github.com/mlplabs/common-go-pkg => github.com/mlplabs/common-go-pkg v0.0.7
 
 replace gitlab.com/mlplabs/auth-service => gitlab.com/mlplabs/auth-service.git v0.0.1
 
