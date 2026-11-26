@@ -74,8 +74,8 @@ github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63/go.mod h1:C1wdFJiN
 github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.7.6 h1:8yTIVnZgCoiM1TgqoeTl+LfU5Jg6/xL3QhGQnimLYnA=
 github.com/mailru/easyjson v0.7.6/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
-github.com/mlplabs/common-go-pkg v0.0.6 h1:eBNumkUvtK67WDhXxmW7PAPGq7EJ+pwRrFdhJFuiq9E=
-github.com/mlplabs/common-go-pkg v0.0.6/go.mod h1:/44TFvnUbBCe85zYS2LvMc2Jryd17xfcUdqSfNR3dfQ=
+github.com/mlplabs/common-go-pkg v0.0.7 h1:+U6IME+/5Fim0wp0Lw/pwfYVV0S221co5l7UMsZsJFY=
+github.com/mlplabs/common-go-pkg v0.0.7/go.mod h1:/44TFvnUbBCe85zYS2LvMc2Jryd17xfcUdqSfNR3dfQ=
 github.com/moby/docker-image-spec v1.3.1 h1:jMKff3w6PgbfSa69GfNg+zN/XLhfXJGnEx3Nl2EsFP0=
 github.com/moby/docker-image-spec v1.3.1/go.mod h1:eKmb5VW8vQEh/BAr2yvVNvuiJuY6UIocYsFu/DxxRpo=
 github.com/moby/moby/api v1.54.2 h1:wiat9QAhnDQjA7wk1kh/TqHz2I1uUA7M7t9SAl/JNXg=

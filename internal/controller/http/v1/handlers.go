@@ -53,6 +53,24 @@ func NewServiceHandler(router *chi.Mux, publicKey *rsa.PublicKey, service *wms.S
 				r.Get("/{id}", wrapper.Data(h.getManufacturerById))
 				r.Patch("/{id}", wrapper.Data(h.updateManufacturer))
 			})
+			r.Group(func(r chi.Router) {
+				r.Use(httpInternal.RequireIdempotencyKey())
+				r.Route("/storage", func(r chi.Router) {
+					r.Route("/items", func(r chi.Router) {
+						r.Post("/receive", wrapper.Data(h.receiveItem))
+						r.Post("/move", wrapper.Data(h.moveItem))
+						r.Post("/dispatch", wrapper.Data(h.dispatchItem))
+					})
+
+					r.Route("/containers", func(r chi.Router) {
+						r.Post("/place", wrapper.Data(h.placeContainer))
+						r.Post("/move", wrapper.Data(h.moveContainer))
+						r.Post("/dispatch", wrapper.Data(h.dispatchContainer))
+						r.Post("/nest", wrapper.Data(h.nestContainer))
+						r.Post("/unnest", wrapper.Data(h.unnestContainer))
+					})
+				})
+			})
 		})
 		// для админки
 		r.Group(func(r chi.Router) {
@@ -67,6 +85,7 @@ func NewServiceHandler(router *chi.Mux, publicKey *rsa.PublicKey, service *wms.S
 				r.Get("/containers/{id}", wrapper.Data(h.getContainerById))
 			})
 		})
+
 		r.Group(func(r chi.Router) {
 			//r.Use(rest.TokenValidateWithoutRoles(publicKey))
 			r.Route("/mobile", func(r chi.Router) {
