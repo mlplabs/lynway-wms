@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mlplabs/lynway-wms/internal/model"
 	"github.com/mlplabs/lynway-wms/internal/repository/dbo"
 	"github.com/mlplabs/lynway-wms/pkg/dto"
 )
@@ -29,9 +30,10 @@ func (s *Service) GetUsers(ctx context.Context) ([]dto.User, error) {
 
 func (s *Service) CreateUser(ctx context.Context, user *dto.CreateUserRequest) (int, error) {
 	res, err := s.whs.CreateUser(ctx, &dbo.CreateUserParams{
-		Login:    user.Login,
-		Name:     user.Name,
-		IsActive: user.IsActive,
+		Login:     user.Login,
+		Name:      user.Name,
+		IsActive:  user.IsActive,
+		CreatedBy: model.UserIdPtrFromContext(ctx),
 	})
 	if err != nil {
 		return 0, fmt.Errorf("failed to create user: %w", err)
@@ -41,10 +43,11 @@ func (s *Service) CreateUser(ctx context.Context, user *dto.CreateUserRequest) (
 
 func (s *Service) UpdateUser(ctx context.Context, user *dto.UpdateUserRequest) error {
 	err := s.whs.UpdateUser(ctx, &dbo.UpdateUserParams{
-		ID:       user.ID,
-		Login:    user.Login,
-		Name:     user.Name,
-		IsActive: user.IsActive,
+		ID:        user.ID,
+		Login:     user.Login,
+		Name:      user.Name,
+		IsActive:  user.IsActive,
+		UpdatedBy: model.UserIdPtrFromContext(ctx),
 	})
 	if err != nil {
 		return fmt.Errorf("error updating user: %w", err)
