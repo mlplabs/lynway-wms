@@ -60,7 +60,7 @@ The paid editions — **Business** and **Cloud** — are developed in a private 
 
 * [x] Core database schema
 * [x] Database auto-creation, embedded migrations (`golang-migrate`), and initial seeding
-* [ ] Append-only ledger engine (`storage`) and zone/cell restriction checks
-* [ ] Nested container math (`containers`: nest, unnest, deep inspection)
-* [ ] Item resolution service ("Find, Clone or Create" + `pg_trgm`)
+* [x] Append-only ledger engine (`storage`) and zone/cell restriction checks
+* [x] Nested container math (`containers`: nest, unnest, deep inspection)
+* [x] Item resolution service ("Find, Clone or Create" + `pg_trgm`)
 * [ ] REST API for Android app, Vue 3 SPA, and CUPS Print Agent
