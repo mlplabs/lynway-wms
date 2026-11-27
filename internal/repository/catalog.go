@@ -94,12 +94,12 @@ func (r *pgRepository) FindManufacturerByName(ctx context.Context, name string) 
 	return &res, nil
 }
 
-func (r *pgRepository) CreateManufacturer(ctx context.Context, name string) (*model.Manufacturer, error) {
+func (r *pgRepository) CreateManufacturer(ctx context.Context, p *dbo.CreateManufacturerParams) (*model.Manufacturer, error) {
 	var res model.Manufacturer
 
 	err := r.conn.QueryRowContext(ctx, `
-		INSERT INTO public.manufacturers (name) VALUES ($1) 
-		RETURNING id, name`, name).Scan(&res.ID, &res.Name)
+		INSERT INTO public.manufacturers (name, created_by) VALUES ($1, $2) 
+		RETURNING id, name`, p.Name, p.CreatedBy).Scan(&res.ID, &res.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -201,10 +201,10 @@ func (r *pgRepository) CreateItem(ctx context.Context, p *dbo.CreateItemParams) 
 	var newID int
 
 	err := r.conn.QueryRowContext(ctx, `
-		INSERT INTO public.items (name, manufacturer_id, sku, barcode, tags, attributes)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO public.items (name, manufacturer_id, sku, barcode, tags, attributes, created_by)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id`,
-		p.Name, p.ManufacturerID, p.SKU, p.Barcode, pq.Array(p.Tags), p.Attributes,
+		p.Name, p.ManufacturerID, p.SKU, p.Barcode, pq.Array(p.Tags), p.Attributes, p.CreatedBy,
 	).Scan(&newID)
 	if err != nil {
 		var pqErr *pq.Error
@@ -270,9 +270,39 @@ func (r *pgRepository) UpdateItem(ctx context.Context, p dbo.UpdateItemParams) e
 		    barcode         = $4,
 		    tags            = $5,
 		    attributes      = $6,
-		    updated_at      = now()
-		WHERE id = $7`,
-		p.Name, p.ManufacturerID, p.SKU, p.Barcode, pq.Array(p.Tags), p.Attributes, p.ID,
+		    updated_at      = now(),
+		    updated_by      = $7
+		WHERE id = $8`,
+		p.Name, p.ManufacturerID, p.SKU, p.Barcode, pq.Array(p.Tags), p.Attributes, p.ID, p.UpdatedBy,
+	)
+
+	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+			return ErrBarcodeAlreadyExists
+		}
+		return fmt.Errorf("update item: %w", err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
+func (r *pgRepository) UpdateManufacturer(ctx context.Context, p *dbo.UpdateManufacturerParams) error {
+	res, err := r.conn.ExecContext(ctx, `
+		UPDATE public.manufacturers
+		SET name            = $1,
+		    updated_by      = $2
+		WHERE id = $3`,
+		p.Name, p.UpdatedBy, p.ID,
 	)
 
 	if err != nil {

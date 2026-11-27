@@ -3,7 +3,9 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 -- 1. Склады
 CREATE TABLE public.warehouses (
                                    id   serial CONSTRAINT warehouses_pk PRIMARY KEY,
-                                   name varchar(100) NOT NULL
+                                   name varchar(100) NOT NULL,
+                                   created_by int NULL,
+                                   updated_by int NULL
 );
 
 -- 2. Зоны склада
@@ -12,7 +14,9 @@ CREATE TABLE public.zones (
                               name         varchar(100)          NOT NULL,
                               type         varchar(20)           NOT NULL, -- 'RECEIVING' | 'STORAGE' | 'DISPATCH'
                               is_system    boolean DEFAULT false NOT NULL,
-                              warehouse_id integer               NOT NULL REFERENCES public.warehouses(id)
+                              warehouse_id integer               NOT NULL REFERENCES public.warehouses(id),
+                              created_by   integer,
+                              updated_by   integer
 );
 
 -- 3. Ячейки / Адреса хранения
@@ -36,7 +40,9 @@ CREATE TABLE public.cells (
                               is_weight_free  boolean       DEFAULT false                 NOT NULL,
                               not_allowed_in  boolean       DEFAULT false                 NOT NULL,
                               not_allowed_out boolean       DEFAULT false                 NOT NULL,
-                              is_service      boolean       DEFAULT false                 NOT NULL
+                              is_service      boolean       DEFAULT false                 NOT NULL,
+                              created_by      int,
+                              updated_by      int
 );
 
 CREATE INDEX idx_cells_zone_service ON public.cells (zone_id, is_service);
@@ -44,12 +50,14 @@ CREATE INDEX idx_cells_hierarchy ON public.cells (whs_id, zone_id, passage_id, r
 
 -- 4. Контейнеры / Тара (Математика тар)
 CREATE TABLE public.containers (
-                                   id        bigserial CONSTRAINT containers_pk PRIMARY KEY,
-                                   name      text,
-                                   type      integer DEFAULT 0 NOT NULL,
-                                   parent_id integer DEFAULT 0 NOT NULL,
-                                   root_id   integer,
-                                   depth     integer DEFAULT 0 NOT NULL
+                                   id           bigserial CONSTRAINT containers_pk PRIMARY KEY,
+                                   name         text,
+                                   type         integer DEFAULT 0 NOT NULL,
+                                   parent_id    integer DEFAULT 0 NOT NULL,
+                                   root_id      integer,
+                                   depth        integer DEFAULT 0 NOT NULL,
+                                   created_by   integer,
+                                   updated_by   integer
 );
 
 CREATE INDEX idx_containers_root ON public.containers (root_id);
@@ -58,7 +66,9 @@ CREATE INDEX idx_containers_parent ON public.containers (parent_id);
 -- 5. Производители и Номенклатура
 CREATE TABLE public.manufacturers (
                                       id   serial CONSTRAINT manufacturers_pk PRIMARY KEY,
-                                      name text UNIQUE NOT NULL
+                                      name text UNIQUE NOT NULL,
+                                      created_by   integer,
+                                      updated_by   integer
 );
 
 CREATE INDEX idx_manufacturers_name_trgm ON public.manufacturers USING gin (name gin_trgm_ops);
@@ -72,7 +82,9 @@ CREATE TABLE public.items (
                               tags            text[]      DEFAULT '{}'        NOT NULL,
                               attributes      jsonb       DEFAULT '{}'::jsonb NOT NULL,
                               created_at      timestamptz DEFAULT now()       NOT NULL,
-                              updated_at      timestamptz DEFAULT now()       NOT NULL
+                              updated_at      timestamptz DEFAULT now()       NOT NULL,
+                              created_by      integer,
+                              updated_by      integer
 );
 
 CREATE INDEX idx_items_name_trgm ON public.items USING gin (name gin_trgm_ops);
@@ -92,6 +104,7 @@ CREATE TABLE public.storage (
                                 container_id integer,
                                 item_id      integer,
                                 quantity     integer,
+                                created_by   integer,
                                 CONSTRAINT chk_storage_location CHECK (whs_id IS NOT NULL
                                     AND zone_id IS NOT NULL
                                     AND (container_id IS NOT NULL OR item_id IS NOT NULL))
@@ -107,6 +120,8 @@ CREATE TABLE public.agents
 (
     id    bigserial PRIMARY KEY,
     name  varchar(100),
+    created_by   integer,
+    updated_by   integer,
     token text
         constraint agents_pk_token
             unique
@@ -121,6 +136,8 @@ CREATE TABLE public.printers (
                                  display_name text                  NOT NULL,
                                  is_online    boolean DEFAULT true  NOT NULL,
                                  last_seen_at timestamptz DEFAULT now() NOT NULL,
+                                 created_by   integer,
+                                 updated_by   integer,
                                  UNIQUE (agent_id, cups_name)
 );
 
@@ -135,7 +152,8 @@ CREATE TABLE public.print_jobs (
                                    copies         integer DEFAULT 1 NOT NULL,
                                    status         integer DEFAULT 0 NOT NULL,
                                    error_text     text,
-                                   created_at     timestamptz DEFAULT now() NOT NULL
+                                   created_at     timestamptz DEFAULT now() NOT NULL,
+                                   created_by     integer
 );
 
 CREATE INDEX idx_print_jobs_status ON public.print_jobs (printer_id, status, created_at);
@@ -145,8 +163,10 @@ CREATE TABLE public.users (
                               username        varchar(50) UNIQUE NOT NULL,
                               password_hash   text               NOT NULL,
                               role            varchar(20)        NOT NULL,
-                              def_printer_id  integer REFERENCES public.printers(id),
-                              def_tprinter_id integer REFERENCES public.printers(id)
+                              default_printer_id  integer REFERENCES public.printers(id),
+                              default_tprinter_id integer REFERENCES public.printers(id),
+                              created_by   integer,
+                              updated_by   integer
 );
 
 CREATE TABLE public.operations_inbox (

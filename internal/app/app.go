@@ -72,7 +72,7 @@ func Run(cfg *config.Config) {
 	router := controller.NewRouter()
 	apiRouter := chi.NewRouter()
 
-	v1.NewServiceHandler(apiRouter, nil, service)
+	v1.NewServiceHandler(apiRouter, cfg, service, nil, nil)
 
 	router.Mount("/api", apiRouter)
 

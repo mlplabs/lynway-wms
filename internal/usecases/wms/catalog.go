@@ -62,7 +62,10 @@ func (s *Service) ResolveManufacturer(ctx context.Context, in *model.ResolveManu
 		return nil, err
 	}
 
-	created, err := s.whs.CreateManufacturer(ctx, name)
+	created, err := s.whs.CreateManufacturer(ctx, &dbo.CreateManufacturerParams{
+		Name:      name,
+		CreatedBy: model.UserIdPtrFromContext(ctx),
+	})
 
 	action := model.ActionCreated
 	if in.BaseID != nil && *in.BaseID > 0 {
@@ -78,9 +81,10 @@ func (s *Service) UpdateManufacturer(ctx context.Context, id int, in *model.Upda
 		return nil, ErrEmptyName
 	}
 
-	err := s.whs.UpdateItem(ctx, dbo.UpdateItemParams{
-		ID:   id,
-		Name: name,
+	err := s.whs.UpdateManufacturer(ctx, &dbo.UpdateManufacturerParams{
+		ID:        id,
+		Name:      name,
+		UpdatedBy: model.UserIdPtrFromContext(ctx),
 	})
 
 	if err != nil {
@@ -172,6 +176,7 @@ func (s *Service) ResolveItem(ctx context.Context, in *model.ResolveItemRequest)
 			Barcode:        barcode,
 			Tags:           finalTags,
 			Attributes:     finalAttrs,
+			CreatedBy:      model.UserIdPtrFromContext(ctx),
 		})
 		if err != nil {
 			return err
@@ -246,6 +251,7 @@ func (s *Service) UpdateItem(ctx context.Context, id int, in *model.UpdateItemRe
 		Barcode:        normalizeNullStr(in.Barcode),
 		Tags:           tags,
 		Attributes:     attrs,
+		UpdatedBy:      model.UserIdPtrFromContext(ctx),
 	})
 
 	if err != nil {

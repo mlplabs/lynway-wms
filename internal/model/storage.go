@@ -40,6 +40,7 @@ type StorageRow struct {
 	ContainerID *int
 	ItemID      *int
 	Quantity    int
+	CreatedBy   *int
 }
 
 // ZoneMeta метаданные зоны

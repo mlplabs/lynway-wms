@@ -7,13 +7,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mlplabs/lynway-wms/internal/model"
+	"github.com/mlplabs/lynway-wms/internal/repository/dbo"
 	"github.com/mlplabs/lynway-wms/pkg/dto"
 )
 
 type PrintRepository interface {
 	GetAgent(ctx context.Context, token string) (*model.Agent, error)
-	UpdateAgentInfo(ctx context.Context, agentInfo *model.AgentInfo) error
-	UpdateAgentToken(ctx context.Context, agentId int, token string) error
+	CreateAgentInfo(ctx context.Context, p *dbo.CreateAgentInfoParams) error
+	UpdateAgentToken(ctx context.Context, agentId int, token string, updatedBy *int) error
 	GetPrintTaskWithLock(ctx context.Context, agentId int) (int, error)
 	GetPrintTaskById(ctx context.Context, taskId int) (*model.PrintQueueTask, error)
 	UpdatePrintTaskStatus(ctx context.Context, status *model.PrintTaskStatus) error
@@ -65,8 +66,20 @@ func (s *Service) GetPrintTask(ctx context.Context, agentId int) (*model.PrintTa
 func (s *Service) UpdatePrintTaskStatus(ctx context.Context, status *model.PrintTaskStatus) error {
 	return s.print.UpdatePrintTaskStatus(ctx, status)
 }
-func (s *Service) UpdateAgentInfo(ctx context.Context, agentInfo *model.AgentInfo) error {
-	return s.print.UpdateAgentInfo(ctx, agentInfo)
+func (s *Service) CreateAgentInfo(ctx context.Context, agentInfo *model.AgentInfo) error {
+	p := dbo.CreateAgentInfoParams{
+		Token:     agentInfo.Token,
+		CreatedBy: model.UserIdPtrFromContext(ctx),
+	}
+	for _, printer := range agentInfo.Printers {
+		p.Printers = append(p.Printers, dbo.Printer{
+			Id:      printer.Id,
+			Name:    printer.Name,
+			AgentId: printer.AgentId,
+		})
+	}
+
+	return s.print.CreateAgentInfo(ctx, &p)
 }
 
 // GenerateAgentToken обновляет токен у выбранного агента
@@ -74,7 +87,9 @@ func (s *Service) GenerateAgentToken(ctx context.Context, agentId int) (string, 
 	uid := uuid.New().String()
 	token := base64.StdEncoding.EncodeToString([]byte(uid))
 
-	err := s.print.UpdateAgentToken(ctx, agentId, token)
+	err := s.print.UpdateAgentToken(ctx, agentId, token,
+		model.UserIdPtrFromContext(ctx),
+	)
 	if err != nil {
 		return "", fmt.Errorf("failed to update agent token, agent %d, err: %w", agentId, err)
 	}

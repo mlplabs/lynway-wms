@@ -11,8 +11,8 @@ type (
 	Config struct {
 		HTTP `envPrefix:"HTTP_"`
 		Log
-		PgDb `envPrefix:"DB_"`
-		Auth
+		PgDb       `envPrefix:"DB_"`
+		Auth       `envPrefix:"AUTH_"`
 		AuthClient authClient.Config `envPrefix:"AUTH_CLIENT_"`
 	}
 	HTTP struct {
@@ -28,8 +28,9 @@ type (
 		DB       string `env:"NAME,required"`
 	}
 	Auth struct {
-		External        bool   `env:"EXTERNAL_AUTH"         envDefault:"true"`
-		PublicKeyBase64 string `env:"RSA_PUBLIC_KEY_BASE64" envDefault:""`
+		Mode           string `env:"MODE"              envDefault:"none"` // local, external
+		JwtSecret      string `env:"JWT_SECRET"        envDefault:""`     // в base64 для local или внешнего сервиса с общим секретом (HS256)
+		JwrKeysBaseUrl string `env:"JWT_KEYS_BASE_URL" envDefault:""`     // для внешнего сервиса с публичными ключами (RS256/ES256), если JwtSecret пустой
 	}
 
 	Log struct {
@@ -43,4 +44,8 @@ func NewConfig() (*Config, error) {
 		return nil, fmt.Errorf("config error: %w", err)
 	}
 	return &cfg, nil
+}
+
+func (cfg *Config) IsAuthDisable() bool {
+	return cfg.Auth.Mode == "" || cfg.Auth.Mode == "none"
 }

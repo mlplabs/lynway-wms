@@ -28,7 +28,8 @@ type PgRepository interface {
 	SearchManufacturers(ctx context.Context, query string, limit int) ([]model.Manufacturer, error)
 	GetManufacturerById(ctx context.Context, baseID int) (*model.Manufacturer, error)
 	FindManufacturerByName(ctx context.Context, name string) (*model.Manufacturer, error)
-	CreateManufacturer(ctx context.Context, name string) (*model.Manufacturer, error)
+	CreateManufacturer(ctx context.Context, p *dbo.CreateManufacturerParams) (*model.Manufacturer, error)
+	UpdateManufacturer(ctx context.Context, p *dbo.UpdateManufacturerParams) error
 
 	SearchItems(ctx context.Context, query string, limit int) ([]model.Item, error)
 	GetItemById(ctx context.Context, baseID int) (*model.Item, error)
