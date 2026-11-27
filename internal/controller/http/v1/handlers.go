@@ -40,11 +40,20 @@ func NewServiceHandler(router *chi.Mux,
 			))
 		})
 		r.Group(func(r chi.Router) {
-			r.Route("/auth", func(r chi.Router) {
-				r.Post("/login", wrap.Data(h.login))
-				r.Post("/refresh", wrap.Data(h.refresh))
+			r.Route("/auth_deprecated", func(r chi.Router) {
+				r.Post("/login_deprecated", wrap.Data(h.login_deprecated))
+				r.Post("/refresh_deprecated", wrap.Data(h.refresh_deprecated))
 			})
 		})
+		r.Group(func(r chi.Router) {
+			r.Route("/system", func(r chi.Router) {
+				r.Get("/info", wrap.Data(h.getSystemInfo))
+			})
+			r.Route("/auth", func(r chi.Router) {
+				r.Post("/login", wrap.Data(h.login))
+			})
+		})
+
 		r.Group(func(r chi.Router) {
 			r.Use(httpInternal.Auth(cfg, tokenVerifier, extUserResolver))
 			r.Route("/items", func(r chi.Router) {
@@ -83,9 +92,9 @@ func NewServiceHandler(router *chi.Mux,
 			r.Use(jwtutils.TokenValidate("12345")) // TODO: перевести на общий токен
 			r.With().Group(func(r chi.Router) {
 				r.Get("/users/me", wrap.Data(h.me))
-				r.Get("/users", wrap.Data(h.getUsers))
-				r.Get("/users/{id}", wrap.Data(h.getUser))
-				r.Post("/users", wrap.Data(h.updateUser))
+				//r.Get("/users", wrap.Data(h.getUsers))
+				//r.Get("/users/{id}", wrap.Data(h.getUser))
+				//r.Post("/users", wrap.Data(h.updateUser))
 
 				r.Post("/decode", wrap.Data(h.decode))
 			})

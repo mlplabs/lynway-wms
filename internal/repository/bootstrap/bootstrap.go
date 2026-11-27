@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	defaultLogin    = "admin"
-	defaultPassword = "admin"
-	defaultRole     = "admin"
+	defaultLogin     = "admin"
+	defaultPassword  = "admin"
+	defaultAdminName = "Администратор"
+	defaultRole      = "admin"
 )
 
 func RunMigrations(db *sql.DB) error {
@@ -97,9 +98,9 @@ func SeedDefaults(ctx context.Context, db *sql.DB) error {
 		}
 
 		if _, err := tx.ExecContext(ctx, `
-			INSERT INTO public.users (username, password_hash, role)
+			INSERT INTO public.users (login, name, password_hash)
 			VALUES ($1, $2, $3)
-		`, defaultLogin, string(hash), defaultRole); err != nil {
+		`, defaultLogin, defaultAdminName, string(hash)); err != nil {
 			return fmt.Errorf("seed default admin: %w", err)
 		}
 	}

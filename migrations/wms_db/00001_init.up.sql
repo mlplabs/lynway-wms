@@ -158,19 +158,21 @@ CREATE TABLE public.print_jobs (
 
 CREATE INDEX idx_print_jobs_status ON public.print_jobs (printer_id, status, created_at);
 
-CREATE TABLE public.users (
-                              id              serial PRIMARY KEY,
-                              username        varchar(50) UNIQUE NOT NULL,
-                              password_hash   text               NOT NULL,
-                              role            varchar(20)        NOT NULL,
-                              default_printer_id  integer REFERENCES public.printers(id),
-                              default_tprinter_id integer REFERENCES public.printers(id),
-                              created_by   integer,
-                              updated_by   integer
+CREATE TABLE IF NOT EXISTS public.users (
+                                     id            serial      PRIMARY KEY,
+                                     login         text        NOT NULL UNIQUE,
+                                     name          text        NOT NULL,
+                                     password_hash text        NULL, -- NULL, если require_password = false или external JWT
+                                     external_sub  text        NULL UNIQUE,
+                                     is_active     boolean     NOT NULL DEFAULT TRUE,
+                                     created_at    timestamptz NOT NULL DEFAULT NOW(),
+                                     updated_at    timestamptz NOT NULL DEFAULT NOW(),
+                                     created_by    integer,
+                                     updated_by    integer
 );
 
 CREATE TABLE public.operations_inbox (
-                                         key           varchar(64) PRIMARY KEY,
+                                         key           text PRIMARY KEY,
                                          response_code integer     NOT NULL,
                                          response_body jsonb       DEFAULT '{}'::jsonb NOT NULL,
                                          created_at    timestamptz DEFAULT now() NOT NULL
