@@ -56,3 +56,25 @@ type UpdateAgentInfoParams struct {
 	Printers  []Printer
 	UpdatedBy *int
 }
+
+type User struct {
+	ID       int
+	Login    string
+	Name     string
+	IsActive bool
+}
+
+type CreateUserParams struct {
+	Login     string
+	Name      string
+	IsActive  bool
+	CreatedBy *int
+}
+
+type UpdateUserParams struct {
+	ID        int
+	Login     string
+	Name      string
+	IsActive  bool
+	UpdatedBy *int
+}

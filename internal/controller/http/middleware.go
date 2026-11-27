@@ -90,15 +90,10 @@ const (
 )
 
 // TokenClaims — унифицированный результат валидации как локального, так и внешнего JWT.
-type TokenClaims struct {
-	LocalUserID int    // Заполняется для AuthModeLocal
-	ExternalSub string // Заполняется для AuthModeExternal (поле "sub" из внешнего JWT)
-	Name        string // Опционально: имя/email для автосоздания локального профиля
-}
 
 // TokenVerifier проверяет подпись и срок действия JWT (реализуется при подключении JWT-библиотеки).
 type TokenVerifier interface {
-	Verify(ctx context.Context, rawToken string) (*TokenClaims, error)
+	Verify(ctx context.Context, rawToken string) (*model.TokenClaims, error)
 }
 
 // ExternalUserResolver находит или создает локального пользователя по external_sub и возвращает users.id.

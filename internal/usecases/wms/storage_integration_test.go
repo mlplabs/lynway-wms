@@ -177,7 +177,7 @@ func queryBalance(t *testing.T, db *sql.DB, loc model.Location, itemID *int) int
 func TestStorageMatrix_ItemsAndCells(t *testing.T) {
 	db := setupTestDB(t)
 	repo := repository.NewWhsRepository(db)
-	svc := wms.NewService(nil, repo, nil, nil)
+	svc := wms.NewService(nil, nil, repo, nil)
 	ctx := context.Background()
 
 	t.Run("Op1_Op3_ReceiveAndMoveItem", func(t *testing.T) {
@@ -225,7 +225,7 @@ func TestStorageMatrix_ItemsAndCells(t *testing.T) {
 func TestStorageMatrix_ContainersHierarchy(t *testing.T) {
 	db := setupTestDB(t)
 	repo := repository.NewWhsRepository(db)
-	svc := wms.NewService(nil, repo, nil, nil)
+	svc := wms.NewService(nil, nil, repo, nil)
 	ctx := context.Background()
 
 	t.Run("Op2_Op4_Op5_Op6_Op7_ContainerLifecycle", func(t *testing.T) {
@@ -297,7 +297,7 @@ func TestStorageMatrix_ContainersHierarchy(t *testing.T) {
 func TestStorageMatrix_DispatchAndIdempotency(t *testing.T) {
 	db := setupTestDB(t)
 	repo := repository.NewWhsRepository(db)
-	svc := wms.NewService(nil, repo, nil, nil)
+	svc := wms.NewService(nil, nil, repo, nil)
 	ctx := context.Background()
 
 	t.Run("Op8_DispatchAndIdempotency", func(t *testing.T) {
@@ -347,7 +347,7 @@ func TestStorageMatrix_DispatchAndIdempotency(t *testing.T) {
 func TestStorageMatrix_Concurrency(t *testing.T) {
 	db := setupTestDB(t)
 	repo := repository.NewWhsRepository(db)
-	svc := wms.NewService(nil, repo, nil, nil)
+	svc := wms.NewService(nil, nil, repo, nil)
 	ctx := context.Background()
 
 	t.Run("ConcurrentWithdrawals_NoNegativeBalance", func(t *testing.T) {
@@ -461,7 +461,7 @@ func TestIdempotency_UserIsolation(t *testing.T) {
 	// Подставьте ваш стандартный вызов инициализации БД и сервиса из начала файла:
 	db := setupTestDB(t)
 	repo := repository.NewWhsRepository(db)
-	svc := wms.NewService(nil, repo, nil, nil)
+	svc := wms.NewService(nil, nil, repo, nil)
 
 	env := createIsolatedWarehouse(t, db, "idem_usr")
 	itemID := createItem(t, db, "Товар Идемпотентность")

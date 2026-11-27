@@ -8,29 +8,25 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mlplabs/common-go-pkg/pkg/utils"
+	"github.com/mlplabs/lynway-wms/internal/config"
 	"github.com/mlplabs/lynway-wms/internal/model"
 	"github.com/mlplabs/lynway-wms/internal/repository"
 	"github.com/mlplabs/lynway-wms/pkg/dto"
 	authClient "gitlab.com/mlplabs/auth-service/pkg/client"
 )
 
-type AuthService interface {
-	Login(ctx context.Context, login string, password string) (*model.LoginUserResponse, error)
-	Refresh(ctx context.Context, refreshToken string) (*model.RefreshUserResponse, error)
-}
-
 type Service struct {
+	cfg   *config.Config
 	auth  *authClient.HttpClient
-	users UsersRepository
 	print PrintRepository
 	whs   repository.PgRepository
 }
 
-func NewService(auth *authClient.HttpClient, whsRepository repository.PgRepository, users UsersRepository, print PrintRepository) *Service {
+func NewService(cfg *config.Config, auth *authClient.HttpClient, whsRepository repository.PgRepository, print PrintRepository) *Service {
 	return &Service{
+		cfg:   cfg,
 		auth:  auth,
 		whs:   whsRepository,
-		users: users,
 		print: print,
 	}
 }
@@ -95,6 +91,18 @@ func (s *Service) ExecuteIdempotent(
 	})
 
 	return resUUID, err
+}
+
+func (s *Service) GetSystemInfo() *model.SystemInfoResponse {
+	// TODO: перевести на конфиг
+	authMode := "none"
+	requiredPassword := true
+
+	return &model.SystemInfoResponse{
+		Version:         "1.0-alpha",
+		AuthMode:        authMode,
+		RequirePassword: authMode == "local" && requiredPassword,
+	}
 }
 
 func (s *Service) Decode(ctx context.Context, code string) (*model.DecodeResponse, error) {

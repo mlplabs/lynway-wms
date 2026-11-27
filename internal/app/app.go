@@ -18,7 +18,6 @@ import (
 	"github.com/mlplabs/lynway-wms/internal/repository"
 	"github.com/mlplabs/lynway-wms/internal/repository/bootstrap"
 	"github.com/mlplabs/lynway-wms/internal/repository/print"
-	"github.com/mlplabs/lynway-wms/internal/repository/users"
 	"github.com/mlplabs/lynway-wms/internal/usecases/wms"
 	authClient "gitlab.com/mlplabs/auth-service/pkg/client"
 )
@@ -63,16 +62,16 @@ func Run(cfg *config.Config) {
 	}
 
 	service := wms.NewService(
+		cfg,
 		authClient.NewHttpClient(applicationName, &cfg.AuthClient),
 		repository.NewWhsRepository(pgConnection),
-		users.NewUsersRepository(pgConnection),
 		print.NewPrintRepository(pgConnection),
 	)
 
 	router := controller.NewRouter()
 	apiRouter := chi.NewRouter()
 
-	v1.NewServiceHandler(apiRouter, cfg, service, nil, nil)
+	v1.NewServiceHandler(apiRouter, cfg, service, service, nil)
 
 	router.Mount("/api", apiRouter)
 

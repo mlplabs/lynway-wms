@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/caarlos0/env/v6"
 	authClient "gitlab.com/mlplabs/auth-service/pkg/client"
@@ -28,9 +29,11 @@ type (
 		DB       string `env:"NAME,required"`
 	}
 	Auth struct {
-		Mode           string `env:"MODE"              envDefault:"none"` // local, external
-		JwtSecret      string `env:"JWT_SECRET"        envDefault:""`     // в base64 для local или внешнего сервиса с общим секретом (HS256)
-		JwrKeysBaseUrl string `env:"JWT_KEYS_BASE_URL" envDefault:""`     // для внешнего сервиса с публичными ключами (RS256/ES256), если JwtSecret пустой
+		Mode            string        `env:"MODE"              envDefault:"none"`  // local, external
+		JwtSecret       string        `env:"JWT_SECRET"        envDefault:""`      // в base64 для local или внешнего сервиса с общим секретом (HS256)
+		JwrKeysBaseUrl  string        `env:"JWT_KEYS_BASE_URL" envDefault:""`      // для внешнего сервиса с публичными ключами (RS256/ES256), если JwtSecret пустой
+		RequirePassword bool          `env:"REQUIRE_PASSWORD"  envDefault:"false"` // использование пароля (только код сотрудника = логин)
+		TokenTTL        time.Duration `env:"TOKEN_TTL"         envDefault:"96h"`   // время жизни токена
 	}
 
 	Log struct {

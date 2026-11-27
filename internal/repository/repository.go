@@ -16,10 +16,6 @@ type DbTx interface {
 	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
 }
 
-type AuthRepository interface {
-	Login(ctx context.Context, email string, password string) (*model.LoginUserResponse, error)
-}
-
 type PgRepository interface {
 	WithinTx(ctx context.Context, fn func(txRepo PgRepository) error) error
 	AcquireLock(ctx context.Context, lockKey string) error
@@ -54,6 +50,12 @@ type PgRepository interface {
 	InsertRows(ctx context.Context, rows []model.StorageRow) error
 	GetInboxRecord(ctx context.Context, key string) (*model.InboxRecord, error)
 	SaveInboxRecord(ctx context.Context, rec model.InboxRecord) error
+
+	GetUserByLogin(ctx context.Context, login string) (*model.UserInfo, error)
+
+	GetUsers(ctx context.Context) ([]dbo.User, error)
+	CreateUser(ctx context.Context, p *dbo.CreateUserParams) (int, error)
+	UpdateUser(ctx context.Context, p *dbo.UpdateUserParams) error
 }
 
 type pgRepository struct {

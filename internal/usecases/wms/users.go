@@ -4,42 +4,48 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mlplabs/lynway-wms/internal/model"
+	"github.com/mlplabs/lynway-wms/internal/repository/dbo"
+	"github.com/mlplabs/lynway-wms/pkg/dto"
 )
 
-type UsersRepository interface {
-	Get(ctx context.Context) ([]model.User, error)
-	GetById(ctx context.Context, userId int) (*model.User, error)
-	Create(ctx context.Context, user *model.User) (*int, error)
-	Update(ctx context.Context, user *model.User) error
-}
-
-func (s *Service) GetUsers(ctx context.Context) ([]model.User, error) {
-	user, err := s.users.Get(ctx)
+func (s *Service) GetUsers(ctx context.Context) ([]dto.User, error) {
+	users, err := s.whs.GetUsers(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get users error: %w", err)
 	}
-	return user, nil
-}
 
-func (s *Service) GetUserById(ctx context.Context, userId int) (*model.User, error) {
-	user, err := s.users.GetById(ctx, userId)
-	if err != nil {
-		return nil, fmt.Errorf("get users error: %w", err)
-	}
-	return user, nil
-}
+	res := make([]dto.User, 0)
 
-func (s *Service) CreateUser(ctx context.Context, user *model.User) (*int, error) {
-	res, err := s.users.Create(ctx, user)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create user: %w", err)
+	for _, u := range users {
+		res = append(res, dto.User{
+			ID:       u.ID,
+			Login:    u.Login,
+			Name:     u.Name,
+			IsActive: u.IsActive,
+		})
 	}
 	return res, nil
 }
 
-func (s *Service) UpdateUser(ctx context.Context, user *model.User) error {
-	err := s.users.Update(ctx, user)
+func (s *Service) CreateUser(ctx context.Context, user *dto.CreateUserRequest) (int, error) {
+	res, err := s.whs.CreateUser(ctx, &dbo.CreateUserParams{
+		Login:    user.Login,
+		Name:     user.Name,
+		IsActive: user.IsActive,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("failed to create user: %w", err)
+	}
+	return res, nil
+}
+
+func (s *Service) UpdateUser(ctx context.Context, user *dto.UpdateUserRequest) error {
+	err := s.whs.UpdateUser(ctx, &dbo.UpdateUserParams{
+		ID:       user.ID,
+		Login:    user.Login,
+		Name:     user.Name,
+		IsActive: user.IsActive,
+	})
 	if err != nil {
 		return fmt.Errorf("error updating user: %w", err)
 	}
