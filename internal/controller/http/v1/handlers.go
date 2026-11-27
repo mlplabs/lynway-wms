@@ -82,7 +82,6 @@ func NewServiceHandler(router *chi.Mux, publicKey *rsa.PublicKey, service *wms.S
 				r.Post("/users", wrapper.Data(h.updateUser))
 
 				r.Post("/decode", wrapper.Data(h.decode))
-				r.Get("/containers/{id}", wrapper.Data(h.getContainerById))
 			})
 		})
 
@@ -133,12 +132,4 @@ func (h *ServiceHandler) decode(w http.ResponseWriter, r *http.Request) (any, er
 	}
 
 	return res.ToDTO(), nil
-}
-
-func (h *ServiceHandler) getContainerById(w http.ResponseWriter, r *http.Request) (any, error) {
-	id, err := getIdParam(r)
-	if err != nil {
-		return nil, err
-	}
-	return h.service.GetContainerById(r.Context(), id)
 }

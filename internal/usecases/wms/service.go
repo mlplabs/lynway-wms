@@ -2,7 +2,6 @@ package wms
 
 import (
 	"context"
-	"fmt"
 	"math"
 
 	"github.com/mlplabs/common-go-pkg/pkg/utils"
@@ -41,10 +40,6 @@ func (s *Service) Decode(ctx context.Context, code string) (*model.DecodeRespons
 	}, nil
 }
 
-func (s *Service) GetContainerById(ctx context.Context, id int) (*model.Container, error) {
-	return s.whs.GetContainerById(ctx, id)
-}
-
 func (s *Service) DecodeQr(code string) (int, int) {
 	val := utils.NewEnc62("").Decode(code)
 	entityTypeId := val % 100
@@ -57,13 +52,4 @@ func (s *Service) EncodeQr(entityTypeId int, entityId int) string {
 
 	val = int64(entityId*100 + entityTypeId)
 	return utils.NewEnc62("").Encode(val)
-}
-
-func (s *Service) CreateContainer(ctx context.Context, name *string, containerType *int) (*model.Container, error) {
-	c, err := s.whs.CreateContainer(ctx, name, containerType)
-	if err != nil {
-		return nil, fmt.Errorf("create container: %w", err)
-	}
-
-	return c, nil
 }
