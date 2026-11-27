@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS public.users (
 );
 
 CREATE TABLE public.operations_inbox (
-                                         key           varchar(64) PRIMARY KEY,
+                                         key           text PRIMARY KEY,
                                          response_code integer     NOT NULL,
                                          response_body jsonb       DEFAULT '{}'::jsonb NOT NULL,
                                          created_at    timestamptz DEFAULT now() NOT NULL
