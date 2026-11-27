@@ -39,18 +39,24 @@ func (s *Service) ExecuteIdempotent(
 	ctx context.Context,
 	op func(txRepo repository.PgRepository) (uuid.UUID, error),
 ) (uuid.UUID, error) {
-	idempotencyKey := model.IdempotencyKeyFromContext(ctx)
+	rawKey := model.IdempotencyKeyFromContext(ctx)
+
+	// Изолируем ключ по UserID: при auth.mode=none будет "0:<key>", при userID=5 — "5:<key>"
+	var scopedKey string
+	if rawKey != "" {
+		scopedKey = fmt.Sprintf("%d:%s", model.UserIdFromContext(ctx), rawKey)
+	}
 
 	var resUUID uuid.UUID
 
 	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
 		// Если ключ есть — включаем идемпотентность (lock + проверка/запись inbox)
-		if idempotencyKey != "" {
-			if err := txRepo.AcquireLock(ctx, "inbox:"+idempotencyKey); err != nil {
+		if scopedKey != "" {
+			if err := txRepo.AcquireLock(ctx, "inbox:"+scopedKey); err != nil {
 				return err
 			}
 
-			existing, err := txRepo.GetInboxRecord(ctx, idempotencyKey)
+			existing, err := txRepo.GetInboxRecord(ctx, scopedKey)
 			if err != nil {
 				return err
 			}
@@ -69,14 +75,14 @@ func (s *Service) ExecuteIdempotent(
 		}
 
 		// Сохраняем в operations_inbox только если ключ передан
-		if idempotencyKey != "" {
+		if scopedKey != "" {
 			body, err := json.Marshal(rowID)
 			if err != nil {
 				return fmt.Errorf("marshal inbox row_id: %w", err)
 			}
 
 			if err := txRepo.SaveInboxRecord(ctx, model.InboxRecord{
-				Key:          idempotencyKey,
+				Key:          scopedKey,
 				ResponseCode: 200,
 				ResponseBody: body,
 			}); err != nil {

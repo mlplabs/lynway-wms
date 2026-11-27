@@ -6,14 +6,14 @@ import (
 	"github.com/mlplabs/lynway-wms/pkg/dto"
 )
 
-// updateAgentInfo
+// createAgentInfo
 // @Tags Printing
 // @Summary обновление данных агента печати
 // @Description агент обновляет данные о себе на сервере и обновляет список принтеров
 // @Router /print/agents/sync [post]
 // @Param request body dto.AgentInfoRequest true "данные агента"
 // @Success	200
-func (h *ServiceHandler) updateAgentInfo(w http.ResponseWriter, r *http.Request) error {
+func (h *ServiceHandler) createAgentInfo(w http.ResponseWriter, r *http.Request) error {
 	agentToken, err := getAccessToken(r)
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func (h *ServiceHandler) updateAgentInfo(w http.ResponseWriter, r *http.Request)
 	}
 
 	agentInfo.Token = agentToken
-	return h.service.UpdateAgentInfo(r.Context(), agentInfo)
+	return h.service.CreateAgentInfo(r.Context(), agentInfo)
 }
 
 // getPrintTask

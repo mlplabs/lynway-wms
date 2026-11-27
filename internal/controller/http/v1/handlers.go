@@ -1,13 +1,13 @@
 package v1
 
 import (
-	"crypto/rsa"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/mlplabs/common-go-pkg/pkg/http/jwtutils"
 	"github.com/mlplabs/common-go-pkg/pkg/http/response/wrapper"
 	_ "github.com/mlplabs/lynway-wms/docs/swagger"
+	"github.com/mlplabs/lynway-wms/internal/config"
 	httpInternal "github.com/mlplabs/lynway-wms/internal/controller/http"
 	"github.com/mlplabs/lynway-wms/internal/usecases/wms"
 	_ "github.com/mlplabs/lynway-wms/pkg/dto"
@@ -19,14 +19,19 @@ type ServiceHandler struct {
 	apiKeys map[string]struct{}
 }
 
-func NewServiceHandler(router *chi.Mux, publicKey *rsa.PublicKey, service *wms.Service) {
+func NewServiceHandler(router *chi.Mux,
+	cfg *config.Config,
+	service *wms.Service,
+	tokenVerifier httpInternal.TokenVerifier,
+	extUserResolver httpInternal.ExternalUserResolver,
+) {
 	h := &ServiceHandler{
 		service: service,
 		apiKeys: make(map[string]struct{}),
 	}
 	h.apiKeys["12345"] = struct{}{}
 
-	wrapper := wrapper.NewWrapper()
+	wrap := wrapper.NewWrapper()
 
 	router.Route("/v1", func(r chi.Router) {
 		r.Group(func(r chi.Router) {
@@ -36,62 +41,62 @@ func NewServiceHandler(router *chi.Mux, publicKey *rsa.PublicKey, service *wms.S
 		})
 		r.Group(func(r chi.Router) {
 			r.Route("/auth", func(r chi.Router) {
-				r.Post("/login", wrapper.Data(h.login))
-				r.Post("/refresh", wrapper.Data(h.refresh))
+				r.Post("/login", wrap.Data(h.login))
+				r.Post("/refresh", wrap.Data(h.refresh))
 			})
 		})
 		r.Group(func(r chi.Router) {
+			r.Use(httpInternal.Auth(cfg, tokenVerifier, extUserResolver))
 			r.Route("/items", func(r chi.Router) {
-				r.Get("/suggest", wrapper.Data(h.itemsSuggest))
-				r.Post("/resolve", wrapper.Data(h.itemsResolve))
-				r.Get("/{id}", wrapper.Data(h.getItemById))
-				r.Patch("/{id}", wrapper.Data(h.updateItem))
+				r.Get("/suggest", wrap.Data(h.itemsSuggest))
+				r.Post("/resolve", wrap.Data(h.itemsResolve))
+				r.Get("/{id}", wrap.Data(h.getItemById))
+				r.Patch("/{id}", wrap.Data(h.updateItem))
 			})
 			r.Route("/manufacturers", func(r chi.Router) {
-				r.Get("/suggest", wrapper.Data(h.manufacturersSuggest))
-				r.Post("/resolve", wrapper.Data(h.manufacturersResolve))
-				r.Get("/{id}", wrapper.Data(h.getManufacturerById))
-				r.Patch("/{id}", wrapper.Data(h.updateManufacturer))
+				r.Get("/suggest", wrap.Data(h.manufacturersSuggest))
+				r.Post("/resolve", wrap.Data(h.manufacturersResolve))
+				r.Get("/{id}", wrap.Data(h.getManufacturerById))
+				r.Patch("/{id}", wrap.Data(h.updateManufacturer))
 			})
 			r.Group(func(r chi.Router) {
 				r.Use(httpInternal.RequireIdempotencyKey())
 				r.Route("/storage", func(r chi.Router) {
 					r.Route("/items", func(r chi.Router) {
-						r.Post("/receive", wrapper.Data(h.receiveItem))
-						r.Post("/move", wrapper.Data(h.moveItem))
-						r.Post("/dispatch", wrapper.Data(h.dispatchItem))
+						r.Post("/receive", wrap.Data(h.receiveItem))
+						r.Post("/move", wrap.Data(h.moveItem))
+						r.Post("/dispatch", wrap.Data(h.dispatchItem))
 					})
 
 					r.Route("/containers", func(r chi.Router) {
-						r.Post("/place", wrapper.Data(h.placeContainer))
-						r.Post("/move", wrapper.Data(h.moveContainer))
-						r.Post("/dispatch", wrapper.Data(h.dispatchContainer))
-						r.Post("/nest", wrapper.Data(h.nestContainer))
-						r.Post("/unnest", wrapper.Data(h.unnestContainer))
+						r.Post("/place", wrap.Data(h.placeContainer))
+						r.Post("/move", wrap.Data(h.moveContainer))
+						r.Post("/dispatch", wrap.Data(h.dispatchContainer))
+						r.Post("/nest", wrap.Data(h.nestContainer))
+						r.Post("/unnest", wrap.Data(h.unnestContainer))
 					})
 				})
 			})
 		})
 		// для админки
 		r.Group(func(r chi.Router) {
-			r.Use(jwtutils.TokenValidate("12345"))
+			r.Use(jwtutils.TokenValidate("12345")) // TODO: перевести на общий токен
 			r.With().Group(func(r chi.Router) {
-				r.Get("/users/me", wrapper.Data(h.me))
-				r.Get("/users", wrapper.Data(h.getUsers))
-				r.Get("/users/{id}", wrapper.Data(h.getUser))
-				r.Post("/users", wrapper.Data(h.updateUser))
+				r.Get("/users/me", wrap.Data(h.me))
+				r.Get("/users", wrap.Data(h.getUsers))
+				r.Get("/users/{id}", wrap.Data(h.getUser))
+				r.Post("/users", wrap.Data(h.updateUser))
 
-				r.Post("/decode", wrapper.Data(h.decode))
+				r.Post("/decode", wrap.Data(h.decode))
 			})
 		})
 
 		r.Group(func(r chi.Router) {
-			//r.Use(rest.TokenValidateWithoutRoles(publicKey))
 			r.Route("/mobile", func(r chi.Router) {
-				r.Post("/init", wrapper.Data(h.mobileInit))
+				r.Post("/init", wrap.Data(h.mobileInit))
 				r.Route("/search", func(r chi.Router) {
-					r.Post("/search/product", wrapper.Data(h.searchProduct))
-					r.Post("/search/container", wrapper.Data(h.searchContainer))
+					r.Post("/search/product", wrap.Data(h.searchProduct))
+					r.Post("/search/container", wrap.Data(h.searchContainer))
 				})
 			})
 		})
@@ -100,10 +105,10 @@ func NewServiceHandler(router *chi.Mux, publicKey *rsa.PublicKey, service *wms.S
 			r.Use(httpInternal.APIKeyValidate(h.apiKeys))
 			r.Route("/print", func(r chi.Router) {
 				r.Route("/agents", func(r chi.Router) {
-					r.Post("/sync", wrapper.Empty(h.updateAgentInfo))
+					r.Post("/sync", wrap.Empty(h.createAgentInfo))
 				})
-				r.Get("/tasks", wrapper.Data(h.getPrintTask))
-				r.Post("/tasks/status", wrapper.Empty(h.updatePrintTaskStatus))
+				r.Get("/tasks", wrap.Data(h.getPrintTask))
+				r.Post("/tasks/status", wrap.Empty(h.updatePrintTaskStatus))
 			})
 		})
 	})

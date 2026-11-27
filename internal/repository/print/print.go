@@ -8,6 +8,7 @@ import (
 
 	domainErr "github.com/mlplabs/common-go-pkg/pkg/http/errors/custom"
 	"github.com/mlplabs/lynway-wms/internal/model"
+	"github.com/mlplabs/lynway-wms/internal/repository/dbo"
 	"github.com/mlplabs/lynway-wms/pkg/dto"
 )
 
@@ -35,12 +36,12 @@ func (r *pgPrint) GetAgent(ctx context.Context, token string) (*model.Agent, err
 	return &res, nil
 }
 
-// UpdateAgentInfo обновление информации об агенте и принтерах
-func (r *pgPrint) UpdateAgentInfo(ctx context.Context, agentInfo *model.AgentInfo) error {
+// CreateAgentInfo обновление информации об агенте и принтерах
+func (r *pgPrint) CreateAgentInfo(ctx context.Context, p *dbo.CreateAgentInfoParams) error {
 	var agentId, printerId int
 
-	query := `INSERT INTO agents (name, token) VALUES ('unnamed', $1) 
-                  	ON CONFLICT (token) DO UPDATE SET name = excluded.name
+	query := `INSERT INTO agents (name, token, created_by) VALUES ('unnamed', $1, $2) 
+                  	ON CONFLICT (token) DO UPDATE SET name = excluded.name, created_by = excluded.created_by
 				RETURNING id`
 
 	tx, err := r.conn.BeginTx(ctx, nil)
@@ -52,13 +53,13 @@ func (r *pgPrint) UpdateAgentInfo(ctx context.Context, agentInfo *model.AgentInf
 		_ = tx.Rollback()
 	}()
 
-	err = tx.QueryRowContext(ctx, query, agentInfo.Token).Scan(&agentId)
+	err = tx.QueryRowContext(ctx, query, p.Token, p.CreatedBy).Scan(&agentId)
 	if err != nil {
 		return err
 	}
 
-	if agentInfo.Printers != nil {
-		for _, prn := range agentInfo.Printers {
+	if p.Printers != nil {
+		for _, prn := range p.Printers {
 			queryPrn := `INSERT INTO printers (agent_id, cups_name, display_name) VALUES ($1, $2, $3)
 					ON CONFLICT (agent_id, cups_name) DO UPDATE SET cups_name = excluded.cups_name RETURNING id`
 
@@ -78,10 +79,10 @@ func (r *pgPrint) UpdateAgentInfo(ctx context.Context, agentInfo *model.AgentInf
 }
 
 // UpdateAgentToken обновляет токен агента по ID
-func (r *pgPrint) UpdateAgentToken(ctx context.Context, agentId int, token string) error {
-	query := `UPDATE agents SET token = $2 WHERE id = $1;`
+func (r *pgPrint) UpdateAgentToken(ctx context.Context, agentId int, token string, updatedBy *int) error {
+	query := `UPDATE agents SET token = $2, updated_by = $3 WHERE id = $1;`
 
-	_, err := r.conn.ExecContext(ctx, query, agentId, token)
+	_, err := r.conn.ExecContext(ctx, query, agentId, token, updatedBy)
 	if err != nil {
 		return fmt.Errorf("failed to update agent token, task: %d, err: %v", agentId, err)
 	}

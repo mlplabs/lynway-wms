@@ -21,14 +21,12 @@ import (
 	"github.com/mlplabs/lynway-wms/internal/usecases/wms"
 )
 
-const defaultTestDSN = "postgres://wms_test:wms_test@localhost:5433/wms_test?sslmode=disable"
-
 func setupTestDB(t *testing.T) *sql.DB {
 	t.Helper()
 
 	dsn := os.Getenv("TEST_DATABASE_URL")
 	if dsn == "" {
-		dsn = defaultTestDSN
+		t.Skipf("skipping integration test: TEST_DATABASE_URL is enpty")
 	}
 
 	db, err := sql.Open("postgres", dsn)
@@ -48,8 +46,9 @@ func setupTestDB(t *testing.T) *sql.DB {
 		time.Sleep(200 * time.Millisecond)
 	}
 	if pingErr != nil {
-		t.Fatalf("db never became ready: %v", pingErr)
+		t.Skipf("skipping integration test: db never became ready: %v", pingErr)
 	}
+
 	t.Cleanup(func() {
 		_ = db.Close()
 	})
@@ -453,4 +452,61 @@ func TestStorageMatrix_Concurrency(t *testing.T) {
 			t.Fatalf("expected all %d items in cellB, got %d", packers*5, gotB)
 		}
 	})
+}
+
+func TestIdempotency_UserIsolation(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	// Подставьте ваш стандартный вызов инициализации БД и сервиса из начала файла:
+	db := setupTestDB(t)
+	repo := repository.NewWhsRepository(db)
+	svc := wms.NewService(nil, repo, nil, nil)
+
+	env := createIsolatedWarehouse(t, db, "idem_usr")
+	itemID := createItem(t, db, "Товар Идемпотентность")
+	cellA := createCell(t, db, env.whsID, env.storageZone, "F-01", false, false)
+	locA := model.Location{WhsID: env.whsID, ZoneID: env.storageZone, CellID: &cellA}
+
+	// Принимаем 50 шт. на locA
+	if _, err := svc.ReceiveItem(ctx, locA, itemID, 50); err != nil {
+		t.Fatalf("receive setup failed: %v", err)
+	}
+
+	sharedKey := fmt.Sprintf("dispatch-shared-%d", time.Now().UnixNano())
+	ctxUser1 := model.WithUserID(model.WithIdempotencyKey(ctx, sharedKey), 101)
+	ctxUser2 := model.WithUserID(model.WithIdempotencyKey(ctx, sharedKey), 102)
+
+	// 1. Первый запрос от User 101 -> списывает 10 шт. (остаток: 40)
+	rowID1, err := svc.DispatchItem(ctxUser1, locA, itemID, 10)
+	if err != nil {
+		t.Fatalf("user 101 first call failed: %v", err)
+	}
+
+	// 2. Ретрай от User 101 с тем же ключом -> вернёт тот же rowID1 без повторного списания (остаток: 40)
+	rowID1Retry, err := svc.DispatchItem(ctxUser1, locA, itemID, 10)
+	if err != nil {
+		t.Fatalf("user 101 retry failed: %v", err)
+	}
+	if rowID1Retry != rowID1 {
+		t.Fatalf("expected cached rowID %s for user 101 retry, got %s", rowID1, rowID1Retry)
+	}
+
+	// 3. Запрос от User 102 с ТЕМ ЖЕ ключом -> независимая операция, списывает ещё 10 шт. (остаток: 30)
+	rowID2, err := svc.DispatchItem(ctxUser2, locA, itemID, 10)
+	if err != nil {
+		t.Fatalf("user 102 call failed: %v", err)
+	}
+	if rowID2 == rowID1 {
+		t.Fatalf("expected distinct rowID for user 102, got same %s", rowID2)
+	}
+
+	// 4. Проверяем итоговый остаток (50 - 10 - 10 = 30)
+	bal, err := repo.GetBalance(ctx, locA, &itemID)
+	if err != nil {
+		t.Fatalf("get balance failed: %v", err)
+	}
+	if bal != 30 {
+		t.Fatalf("expected balance 30, got %d", bal)
+	}
 }

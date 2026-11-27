@@ -51,6 +51,7 @@ func (s *Service) ReceiveItemTx(ctx context.Context, txRepo repository.PgReposit
 		ContainerID: targetLoc.ContainerID,
 		ItemID:      &itemID,
 		Quantity:    qty,
+		CreatedBy:   model.UserIdPtrFromContext(ctx),
 	}
 	if err := txRepo.InsertRows(ctx, []model.StorageRow{row}); err != nil {
 		return uuid.Nil, err
@@ -130,6 +131,7 @@ func (s *Service) MoveItemTx(ctx context.Context, txRepo repository.PgRepository
 
 	rowID := uuid.New()
 	now := time.Now().UTC()
+	createdBy := model.UserIdPtrFromContext(ctx)
 	rows := []model.StorageRow{
 		{
 			RowID:       rowID,
@@ -140,6 +142,7 @@ func (s *Service) MoveItemTx(ctx context.Context, txRepo repository.PgRepository
 			ContainerID: from.ContainerID,
 			ItemID:      &itemID,
 			Quantity:    -qty,
+			CreatedBy:   createdBy,
 		},
 		{
 			RowID:       rowID,
@@ -150,6 +153,7 @@ func (s *Service) MoveItemTx(ctx context.Context, txRepo repository.PgRepository
 			ContainerID: targetLoc.ContainerID,
 			ItemID:      &itemID,
 			Quantity:    qty,
+			CreatedBy:   createdBy,
 		},
 	}
 	if err := txRepo.InsertRows(ctx, rows); err != nil {
@@ -205,6 +209,7 @@ func (s *Service) PlaceContainerTx(ctx context.Context, txRepo repository.PgRepo
 		ContainerID: &containerID,
 		ItemID:      nil,
 		Quantity:    1,
+		CreatedBy:   model.UserIdPtrFromContext(ctx),
 	}
 	if err := txRepo.InsertRows(ctx, []model.StorageRow{row}); err != nil {
 		return uuid.Nil, err
@@ -492,6 +497,7 @@ func (s *Service) relocateSubtree(
 
 	now := time.Now().UTC()
 	rows := make([]model.StorageRow, 0, len(balances)*2)
+	createdBy := model.UserIdPtrFromContext(ctx)
 
 	for _, b := range balances {
 		cntID := b.ContainerID
@@ -505,6 +511,7 @@ func (s *Service) relocateSubtree(
 				ContainerID: &cntID,
 				ItemID:      b.ItemID,
 				Quantity:    -b.Quantity,
+				CreatedBy:   createdBy,
 			},
 			model.StorageRow{
 				RowID:       rowID,
@@ -515,6 +522,7 @@ func (s *Service) relocateSubtree(
 				ContainerID: &cntID,
 				ItemID:      b.ItemID,
 				Quantity:    b.Quantity,
+				CreatedBy:   createdBy,
 			},
 		)
 	}
