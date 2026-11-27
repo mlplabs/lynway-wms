@@ -9,6 +9,7 @@ import (
 
 	pkgErr "github.com/mlplabs/common-go-pkg/pkg/http/errors"
 	domainErr "github.com/mlplabs/common-go-pkg/pkg/http/errors/custom"
+	"github.com/mlplabs/lynway-wms/internal/model"
 )
 
 const idempotencyKey = "Idempotency-Key"
@@ -61,27 +62,17 @@ func APIKeyValidate(apiKeys map[string]struct{}) func(http.Handler) http.Handler
 	}
 }
 
-type ctxKeyIdempotency struct{}
-
-func WithIdempotencyKey(ctx context.Context, key string) context.Context {
-	return context.WithValue(ctx, ctxKeyIdempotency{}, key)
-}
-
 func RequireIdempotencyKey() func(handler http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			key := r.Header.Get(idempotencyKey)
 			if key == "" {
-				pkgErr.SetError(w, r, domainErr.NewBadRequest(fmt.Errorf("missing Idempotency-Key header")))
+				pkgErr.SetError(w, r, domainErr.NewBadRequest(fmt.Errorf("missing %s header", idempotencyKey)))
 				return
 			}
-			ctx := WithIdempotencyKey(r.Context(), key)
+
+			ctx := model.WithIdempotencyKey(r.Context(), key)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
-}
-
-func IdempotencyKeyFromContext(ctx context.Context) string {
-	key, _ := ctx.Value(ctxKeyIdempotency{}).(string)
-	return key
 }

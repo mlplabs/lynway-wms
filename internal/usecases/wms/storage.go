@@ -2,7 +2,6 @@ package wms
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sort"
 	"time"
@@ -12,72 +11,12 @@ import (
 	"github.com/mlplabs/lynway-wms/internal/repository"
 )
 
-func (s *Service) ExecuteIdempotent(
-	ctx context.Context,
-	idempotencyKey string,
-	op func(txRepo repository.PgRepository) (uuid.UUID, error),
-) (uuid.UUID, error) {
-	if idempotencyKey == "" {
-		return uuid.Nil, model.ErrInvalidMovement
-	}
-
-	var resUUID uuid.UUID
-
-	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
-		// 1. Блокируем ключ, чтобы параллельные ретраи с Android-клиента ждали первый запрос
-		if err := txRepo.AcquireLock(ctx, "inbox:"+idempotencyKey); err != nil {
-			return err
-		}
-
-		// 2. Если операция уже была выполнена ранее — достаем сохраненный UUID без повторного списания
-		existing, err := txRepo.GetInboxRecord(ctx, idempotencyKey)
-		if err != nil {
-			return err
-		}
-		if existing != nil {
-			if err := json.Unmarshal(existing.ResponseBody, &resUUID); err != nil {
-				return fmt.Errorf("unmarshal inbox row_id: %w", err)
-			}
-			return nil
-		}
-
-		// 3. Выполняем саму складскую операцию на том же txRepo (внутри той же транзакции)
-		rowID, err := op(txRepo)
-		if err != nil {
-			return err
-		}
-
-		body, err := json.Marshal(rowID)
-		if err != nil {
-			return fmt.Errorf("marshal inbox row_id: %w", err)
-		}
-
-		// 4. Фиксируем результат в operations_inbox перед коммитом транзакции
-		if err := txRepo.SaveInboxRecord(ctx, model.InboxRecord{
-			Key:          idempotencyKey,
-			ResponseCode: 200,
-			ResponseBody: body,
-		}); err != nil {
-			return err
-		}
-
-		resUUID = rowID
-		return nil
-	})
-
-	return resUUID, err
-}
-
 // --- Operation 1 & 2: Приемка товара (в зону, в ячейку или в контейнер) ---
 
 func (s *Service) ReceiveItem(ctx context.Context, loc model.Location, itemID int, qty int) (uuid.UUID, error) {
-	var rowID uuid.UUID
-	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
-		var err error
-		rowID, err = s.ReceiveItemTx(ctx, txRepo, loc, itemID, qty)
-		return err
+	return s.ExecuteIdempotent(ctx, func(txRepo repository.PgRepository) (uuid.UUID, error) {
+		return s.ReceiveItemTx(ctx, txRepo, loc, itemID, qty)
 	})
-	return rowID, err
 }
 
 func (s *Service) ReceiveItemTx(ctx context.Context, txRepo repository.PgRepository, loc model.Location, itemID int, qty int) (uuid.UUID, error) {
@@ -122,13 +61,9 @@ func (s *Service) ReceiveItemTx(ctx context.Context, txRepo repository.PgReposit
 // --- Operation 3: Перемещение товара между любыми координатами ---
 
 func (s *Service) MoveItem(ctx context.Context, from, to model.Location, itemID int, qty int) (uuid.UUID, error) {
-	var rowID uuid.UUID
-	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
-		var err error
-		rowID, err = s.MoveItemTx(ctx, txRepo, from, to, itemID, qty)
-		return err
+	return s.ExecuteIdempotent(ctx, func(txRepo repository.PgRepository) (uuid.UUID, error) {
+		return s.MoveItemTx(ctx, txRepo, from, to, itemID, qty)
 	})
-	return rowID, err
 }
 
 func (s *Service) MoveItemTx(ctx context.Context, txRepo repository.PgRepository, from, to model.Location, itemID int, qty int) (uuid.UUID, error) {
@@ -226,13 +161,9 @@ func (s *Service) MoveItemTx(ctx context.Context, txRepo repository.PgRepository
 // --- Operation 4: Первичное размещение внешнего контейнера в зону/ячейку ---
 
 func (s *Service) PlaceContainer(ctx context.Context, to model.Location, containerID int) (uuid.UUID, error) {
-	var rowID uuid.UUID
-	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
-		var err error
-		rowID, err = s.PlaceContainerTx(ctx, txRepo, to, containerID)
-		return err
+	return s.ExecuteIdempotent(ctx, func(txRepo repository.PgRepository) (uuid.UUID, error) {
+		return s.PlaceContainerTx(ctx, txRepo, to, containerID)
 	})
-	return rowID, err
 }
 
 func (s *Service) PlaceContainerTx(ctx context.Context, txRepo repository.PgRepository, to model.Location, containerID int) (uuid.UUID, error) {
@@ -284,13 +215,9 @@ func (s *Service) PlaceContainerTx(ctx context.Context, txRepo repository.PgRepo
 // --- Operation 5: Перемещение внешнего контейнера между зонами/ячейками ---
 
 func (s *Service) MoveContainer(ctx context.Context, from, to model.Location, containerID int) (uuid.UUID, error) {
-	var rowID uuid.UUID
-	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
-		var err error
-		rowID, err = s.MoveContainerTx(ctx, txRepo, from, to, containerID)
-		return err
+	return s.ExecuteIdempotent(ctx, func(txRepo repository.PgRepository) (uuid.UUID, error) {
+		return s.MoveContainerTx(ctx, txRepo, from, to, containerID)
 	})
-	return rowID, err
 }
 
 func (s *Service) MoveContainerTx(ctx context.Context, txRepo repository.PgRepository, from, to model.Location, containerID int) (uuid.UUID, error) {
@@ -328,13 +255,9 @@ func (s *Service) MoveContainerTx(ctx context.Context, txRepo repository.PgRepos
 // --- Operation 6: Вложение контейнера (childID) внутрь другого контейнера (targetParentID) ---
 
 func (s *Service) NestContainer(ctx context.Context, childID, targetParentID int) (uuid.UUID, error) {
-	var rowID uuid.UUID
-	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
-		var err error
-		rowID, err = s.NestContainerTx(ctx, txRepo, childID, targetParentID)
-		return err
+	return s.ExecuteIdempotent(ctx, func(txRepo repository.PgRepository) (uuid.UUID, error) {
+		return s.NestContainerTx(ctx, txRepo, childID, targetParentID)
 	})
-	return rowID, err
 }
 
 func (s *Service) NestContainerTx(ctx context.Context, txRepo repository.PgRepository, childID, targetParentID int) (uuid.UUID, error) {
@@ -417,13 +340,9 @@ func (s *Service) NestContainerTx(ctx context.Context, txRepo repository.PgRepos
 // --- Operation 7: Извлечение вложенного контейнера наружу (становится root: parent_id = 0) ---
 
 func (s *Service) UnnestContainer(ctx context.Context, containerID int, to model.Location) (uuid.UUID, error) {
-	var rowID uuid.UUID
-	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
-		var err error
-		rowID, err = s.UnnestContainerTx(ctx, txRepo, containerID, to)
-		return err
+	return s.ExecuteIdempotent(ctx, func(txRepo repository.PgRepository) (uuid.UUID, error) {
+		return s.UnnestContainerTx(ctx, txRepo, containerID, to)
 	})
-	return rowID, err
 }
 
 func (s *Service) UnnestContainerTx(ctx context.Context, txRepo repository.PgRepository, containerID int, to model.Location) (uuid.UUID, error) {
@@ -488,13 +407,9 @@ func (s *Service) UnnestContainerTx(ctx context.Context, txRepo repository.PgRep
 // --- Operation 8: Выбытие / Списание (в системную зону DISPATCH с cell_id = NULL) ---
 
 func (s *Service) DispatchItem(ctx context.Context, from model.Location, itemID int, qty int) (uuid.UUID, error) {
-	var rowID uuid.UUID
-	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
-		var err error
-		rowID, err = s.DispatchItemTx(ctx, txRepo, from, itemID, qty)
-		return err
+	return s.ExecuteIdempotent(ctx, func(txRepo repository.PgRepository) (uuid.UUID, error) {
+		return s.DispatchItemTx(ctx, txRepo, from, itemID, qty)
 	})
-	return rowID, err
 }
 
 func (s *Service) DispatchItemTx(ctx context.Context, txRepo repository.PgRepository, from model.Location, itemID int, qty int) (uuid.UUID, error) {
@@ -506,13 +421,9 @@ func (s *Service) DispatchItemTx(ctx context.Context, txRepo repository.PgReposi
 }
 
 func (s *Service) DispatchContainer(ctx context.Context, from model.Location, containerID int) (uuid.UUID, error) {
-	var rowID uuid.UUID
-	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
-		var err error
-		rowID, err = s.DispatchContainerTx(ctx, txRepo, from, containerID)
-		return err
+	return s.ExecuteIdempotent(ctx, func(txRepo repository.PgRepository) (uuid.UUID, error) {
+		return s.DispatchContainerTx(ctx, txRepo, from, containerID)
 	})
-	return rowID, err
 }
 
 func (s *Service) DispatchContainerTx(ctx context.Context, txRepo repository.PgRepository, from model.Location, containerID int) (uuid.UUID, error) {

@@ -316,11 +316,11 @@ func TestStorageMatrix_DispatchAndIdempotency(t *testing.T) {
 
 		// Идемпотентное списание (Op 8) — два вызова с одним ключом спишут товар только один раз
 		idemKey := fmt.Sprintf("dispatch-%d", time.Now().UnixNano())
+		ctxWithKey := model.WithIdempotencyKey(ctx, idemKey)
+
 		var firstRowID uuid.UUID
 		for i := 0; i < 2; i++ {
-			rowID, err := svc.ExecuteIdempotent(ctx, idemKey, func(txRepo repository.PgRepository) (uuid.UUID, error) {
-				return svc.DispatchItemTx(ctx, txRepo, locA, itemID, 15)
-			})
+			rowID, err := svc.DispatchItem(ctxWithKey, locA, itemID, 15)
 			if err != nil {
 				t.Fatalf("idempotent call %d failed: err=%v", i, err)
 			}

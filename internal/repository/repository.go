@@ -25,15 +25,6 @@ type PgRepository interface {
 	AcquireLock(ctx context.Context, lockKey string) error
 	AcquireSharedLock(ctx context.Context, lockKey string) error
 
-	GetContainerById(ctx context.Context, id int) (*model.Container, error)
-	CreateContainer(ctx context.Context, name *string, containerType *int) (*model.Container, error)
-	PutContainer(ctx context.Context, this *model.Container, target *model.Container) error
-	GetContainer(ctx context.Context, this *model.Container) error
-	GetChildrenContainers(ctx context.Context, this *model.Container) ([]model.Container, error)
-	GetParentContainers(ctx context.Context, this *model.Container) ([]model.Container, error)
-	GetParentContainer(ctx context.Context, this *model.Container) (*model.Container, error)
-	GetContainerProducts(ctx context.Context, this *model.Container) ([]model.RemainingProduct, error)
-
 	SearchManufacturers(ctx context.Context, query string, limit int) ([]model.Manufacturer, error)
 	GetManufacturerById(ctx context.Context, baseID int) (*model.Manufacturer, error)
 	FindManufacturerByName(ctx context.Context, name string) (*model.Manufacturer, error)

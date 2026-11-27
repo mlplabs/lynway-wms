@@ -2,9 +2,11 @@ package wms
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 
+	"github.com/google/uuid"
 	"github.com/mlplabs/common-go-pkg/pkg/utils"
 	"github.com/mlplabs/lynway-wms/internal/model"
 	"github.com/mlplabs/lynway-wms/internal/repository"
@@ -33,16 +35,68 @@ func NewService(auth *authClient.HttpClient, whsRepository repository.PgReposito
 	}
 }
 
+func (s *Service) ExecuteIdempotent(
+	ctx context.Context,
+	op func(txRepo repository.PgRepository) (uuid.UUID, error),
+) (uuid.UUID, error) {
+	idempotencyKey := model.IdempotencyKeyFromContext(ctx)
+
+	var resUUID uuid.UUID
+
+	err := s.whs.WithinTx(ctx, func(txRepo repository.PgRepository) error {
+		// Если ключ есть — включаем идемпотентность (lock + проверка/запись inbox)
+		if idempotencyKey != "" {
+			if err := txRepo.AcquireLock(ctx, "inbox:"+idempotencyKey); err != nil {
+				return err
+			}
+
+			existing, err := txRepo.GetInboxRecord(ctx, idempotencyKey)
+			if err != nil {
+				return err
+			}
+			if existing != nil {
+				if err := json.Unmarshal(existing.ResponseBody, &resUUID); err != nil {
+					return fmt.Errorf("unmarshal inbox row_id: %w", err)
+				}
+				return nil
+			}
+		}
+
+		// Выполняем саму операцию (и с ключом, и без ключа)
+		rowID, err := op(txRepo)
+		if err != nil {
+			return err
+		}
+
+		// Сохраняем в operations_inbox только если ключ передан
+		if idempotencyKey != "" {
+			body, err := json.Marshal(rowID)
+			if err != nil {
+				return fmt.Errorf("marshal inbox row_id: %w", err)
+			}
+
+			if err := txRepo.SaveInboxRecord(ctx, model.InboxRecord{
+				Key:          idempotencyKey,
+				ResponseCode: 200,
+				ResponseBody: body,
+			}); err != nil {
+				return err
+			}
+		}
+
+		resUUID = rowID
+		return nil
+	})
+
+	return resUUID, err
+}
+
 func (s *Service) Decode(ctx context.Context, code string) (*model.DecodeResponse, error) {
 	typeId, id := s.DecodeQr(code)
 	return &model.DecodeResponse{
 		EntityTypeId: dto.EntityTypeId(typeId),
 		EntityId:     id,
 	}, nil
-}
-
-func (s *Service) GetContainerById(ctx context.Context, id int) (*model.Container, error) {
-	return s.whs.GetContainerById(ctx, id)
 }
 
 func (s *Service) DecodeQr(code string) (int, int) {
@@ -57,13 +111,4 @@ func (s *Service) EncodeQr(entityTypeId int, entityId int) string {
 
 	val = int64(entityId*100 + entityTypeId)
 	return utils.NewEnc62("").Encode(val)
-}
-
-func (s *Service) CreateContainer(ctx context.Context, name *string, containerType *int) (*model.Container, error) {
-	c, err := s.whs.CreateContainer(ctx, name, containerType)
-	if err != nil {
-		return nil, fmt.Errorf("create container: %w", err)
-	}
-
-	return c, nil
 }

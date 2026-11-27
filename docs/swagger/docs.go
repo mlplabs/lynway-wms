@@ -546,6 +546,374 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/storage/containers/dispatch": {
+            "post": {
+                "tags": [
+                    "Storage"
+                ],
+                "summary": "выбытие (отгрузка) внешнего контейнера в системную зону DISPATCH",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ключ идемпотентности",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "параметры выбытия",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DispatchContainerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "результат операции",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.StorageOperationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/storage/containers/move": {
+            "post": {
+                "tags": [
+                    "Storage"
+                ],
+                "summary": "перемещение внешнего контейнера вместе с содержимым",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ключ идемпотентности",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "параметры перемещения",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MoveContainerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "результат операции",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.StorageOperationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/storage/containers/nest": {
+            "post": {
+                "tags": [
+                    "Storage"
+                ],
+                "summary": "вложение одного контейнера внутрь другого",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ключ идемпотентности",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "параметры вложения",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.NestContainerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "результат операции",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.StorageOperationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/storage/containers/place": {
+            "post": {
+                "tags": [
+                    "Storage"
+                ],
+                "summary": "первичное размещение внешнего контейнера в зону или ячейку",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ключ идемпотентности",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "параметры размещения",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PlaceContainerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "результат операции",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.StorageOperationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/storage/containers/unnest": {
+            "post": {
+                "tags": [
+                    "Storage"
+                ],
+                "summary": "извлечение вложенного контейнера наружу",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ключ идемпотентности",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "параметры извлечения",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UnnestContainerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "результат операции",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.StorageOperationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/storage/items/dispatch": {
+            "post": {
+                "tags": [
+                    "Storage"
+                ],
+                "summary": "выбытие (списание) товара в системную зону DISPATCH",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ключ идемпотентности",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "параметры выбытия",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DispatchItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "результат операции",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.StorageOperationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/storage/items/move": {
+            "post": {
+                "tags": [
+                    "Storage"
+                ],
+                "summary": "перемещение товара между зонами, ячейками или контейнерами",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ключ идемпотентности",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "параметры перемещения",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MoveItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "результат операции",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.StorageOperationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/storage/items/receive": {
+            "post": {
+                "tags": [
+                    "Storage"
+                ],
+                "summary": "приемка товара в зону, ячейку или контейнер",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ключ идемпотентности",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "параметры приемки",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ReceiveItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "результат операции",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/wrapper.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.StorageOperationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -587,6 +955,31 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "Тип данных",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.DispatchContainerRequest": {
+            "type": "object",
+            "properties": {
+                "container_id": {
+                    "type": "integer"
+                },
+                "from": {
+                    "$ref": "#/definitions/dto.LocationDTO"
+                }
+            }
+        },
+        "dto.DispatchItemRequest": {
+            "type": "object",
+            "properties": {
+                "from": {
+                    "$ref": "#/definitions/dto.LocationDTO"
+                },
+                "item_id": {
+                    "type": "integer"
+                },
+                "quantity": {
                     "type": "integer"
                 }
             }
@@ -744,6 +1137,23 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.LocationDTO": {
+            "type": "object",
+            "properties": {
+                "cell_id": {
+                    "type": "integer"
+                },
+                "container_id": {
+                    "type": "integer"
+                },
+                "whs_id": {
+                    "type": "integer"
+                },
+                "zone_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.LoginRequest": {
             "type": "object",
             "properties": {
@@ -794,6 +1204,59 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.MoveContainerRequest": {
+            "type": "object",
+            "properties": {
+                "container_id": {
+                    "type": "integer"
+                },
+                "from": {
+                    "$ref": "#/definitions/dto.LocationDTO"
+                },
+                "to": {
+                    "$ref": "#/definitions/dto.LocationDTO"
+                }
+            }
+        },
+        "dto.MoveItemRequest": {
+            "type": "object",
+            "properties": {
+                "from": {
+                    "$ref": "#/definitions/dto.LocationDTO"
+                },
+                "item_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "to": {
+                    "$ref": "#/definitions/dto.LocationDTO"
+                }
+            }
+        },
+        "dto.NestContainerRequest": {
+            "type": "object",
+            "properties": {
+                "child_id": {
+                    "type": "integer"
+                },
+                "target_parent_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.PlaceContainerRequest": {
+            "type": "object",
+            "properties": {
+                "container_id": {
+                    "type": "integer"
+                },
+                "to": {
+                    "$ref": "#/definitions/dto.LocationDTO"
+                }
+            }
+        },
         "dto.PrintTaskType": {
             "type": "integer",
             "enum": [
@@ -815,6 +1278,20 @@ const docTemplate = `{
                 "printer_name": {
                     "description": "Название принтера",
                     "type": "string"
+                }
+            }
+        },
+        "dto.ReceiveItemRequest": {
+            "type": "object",
+            "properties": {
+                "item_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "to": {
+                    "$ref": "#/definitions/dto.LocationDTO"
                 }
             }
         },
@@ -915,6 +1392,14 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.StorageOperationResponse": {
+            "type": "object",
+            "properties": {
+                "row_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.TaskStatus": {
             "type": "integer",
             "enum": [
@@ -941,6 +1426,17 @@ const docTemplate = `{
                 "PrintTaskStatusSuccess",
                 "PrintTaskStatusError"
             ]
+        },
+        "dto.UnnestContainerRequest": {
+            "type": "object",
+            "properties": {
+                "container_id": {
+                    "type": "integer"
+                },
+                "to": {
+                    "$ref": "#/definitions/dto.LocationDTO"
+                }
+            }
         },
         "dto.UpdateItemRequest": {
             "type": "object",
